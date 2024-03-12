@@ -1,0 +1,31 @@
+name: Lint Code
+
+on:
+  - pull_request
+
+jobs:
+  actionlint:
+    name: GitHub Actions
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Lint GitHub Actions Workflow Files
+        uses: docker://rhysd/actionlint:daa1edae4a6366f320b68abb60b74fb59a458c17b61938d3c62709d92b231558 # v1.6.27
+        with:
+          args: -color
+  yamllint:
+    name: YAML
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Setup Python
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+      - name: Install yamllint
+        run: |
+          pip install --upgrade pip
+          pip install yamllint
+      - name: Lint YAML Files
+        run: |
+          yamllint .
