@@ -2,6 +2,7 @@ extends: relaxed
 
 rules:
   comments:
+    level: error
     require-starting-space: true
     ignore-shebangs: true
     min-spaces-from-content: 1
@@ -14,15 +15,15 @@ rules:
     present: false
 
   document-end:
+    level: error
     present: false
 
   empty-lines:
+    level: error
     max: 1
 
   indentation:
+    level: error
     spaces: 2
 
   line-length: disable
-
-ignore: |
-  .venv
