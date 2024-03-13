@@ -41,8 +41,31 @@ jobs:
         uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
           go-version-file: 'go.mod'
-          cache: true
+          cache: false
       - name: Lint Go Files
         uses: golangci/golangci-lint-action@3cfe3a4abbb849e10058ce4af15d205b6da42804 # v4.0.0
         with:
           version: latest
+  tflint:
+    name: Terraform
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      - name: Cache TFLint Plugins
+        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # 4.0.1
+        with:
+          path: ~/.tflint/plugins
+          key: tflint-${{ hashFiles('.tflint.hcl') }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36 # v3.0.0
+        with:
+          terraform_version: "1.7.4"
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@19a52fbac37dacb22a09518e4ef6ee234f2d4987 # v4.0.0
+        with:
+          tflint_version: "v0.50.3"
+      - name: Lint Terraform Files
+        run: |
+          tflint --init
+          tflint --recursive --format=compact
