@@ -2,11 +2,15 @@ module github.com/craigsloggett/terraform-provider-github
 
 go 1.22.1
 
-require github.com/hashicorp/terraform-plugin-framework v1.6.1
+require (
+	github.com/google/go-github/v60 v60.0.0
+	github.com/hashicorp/terraform-plugin-framework v1.6.1
+)
 
 require (
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-hclog v1.6.2 // indirect
 	github.com/hashicorp/go-plugin v1.6.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
@@ -24,7 +28,7 @@ require (
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240311173647-c811ad7063a7 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240314234333-6e1732d8331c // indirect
 	google.golang.org/grpc v1.62.1 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 )
