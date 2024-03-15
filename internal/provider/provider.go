@@ -43,15 +43,15 @@ func (p *GitHubProvider) Schema(_ context.Context, _ provider.SchemaRequest, res
 }
 
 func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var data GitHubProviderModel
+	var model GitHubProviderModel
 	var token string
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 	token = os.Getenv("GITHUB_TOKEN")
 
 	// Prioritize a token configured in the provider over the GITHUB_TOKEN environment variable.
-	if data.Token.ValueString() != "" {
-		token = data.Token.ValueString()
+	if model.Token.ValueString() != "" {
+		token = model.Token.ValueString()
 	}
 
 	if token == "" {
