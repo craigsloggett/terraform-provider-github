@@ -76,9 +76,10 @@ func (d *GitHubRepository) Configure(_ context.Context, req datasource.Configure
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
+			"Unexpected Type from ProviderData",
 			fmt.Sprintf("Expected *github.Client, got: %T", req.ProviderData),
 		)
+		return
 	}
 
 	d.client = client
@@ -87,7 +88,16 @@ func (d *GitHubRepository) Configure(_ context.Context, req datasource.Configure
 func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var model GitHubRepositoryModel
 
-	client := d.client.(*github.Client)
+	client, ok := d.client.(*github.Client)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Type from GitHubProvider's Client Field",
+			fmt.Sprintf("Expected *github.Client, got: %T", d.client),
+		)
+		return
+	}
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 
 	if resp.Diagnostics.HasError() {
