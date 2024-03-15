@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/craigsloggett/terraform-provider-github/internal/resources/repositories"
+	"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -44,10 +45,9 @@ func (p *GitHubProvider) Schema(_ context.Context, _ provider.SchemaRequest, res
 
 func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var model GitHubProviderModel
-	var token string
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
-	token = os.Getenv("GITHUB_TOKEN")
+	token := os.Getenv("GITHUB_TOKEN")
 
 	// Prioritize a token configured in the provider over the GITHUB_TOKEN environment variable.
 	if model.Token.ValueString() != "" {
@@ -62,6 +62,12 @@ func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRe
 				"block token attribute.",
 		)
 	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.DataSourceData = github.NewClient(nil)
 }
 
 func (p *GitHubProvider) DataSources(_ context.Context) []func() datasource.DataSource {

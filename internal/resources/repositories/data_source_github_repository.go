@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	//"github.com/google/go-github/v60/github"
+	"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -12,6 +12,7 @@ import (
 var _ datasource.DataSource = &GitHubRepository{}
 
 type GitHubRepository struct {
+	client any
 }
 
 type GitHubRepositoryModel struct {
@@ -64,13 +65,21 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 	}
 }
 
+func (d *GitHubRepository) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = req.ProviderData
+}
+
 func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var model GitHubRepositoryModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
+	client := d.client.(*github.Client)
 
-	model.Id = types.Int64Value(192848)
-	model.Name = types.StringValue("test_name_from_provider")
+	repos, _, _ := client.Repositories.Get(ctx, model.Owner.ValueString(), model.Repo.ValueString())
+
+	model.Id = types.Int64Value(repos.GetID())
+	model.Name = types.StringValue(repos.GetName())
+	model.FullName = types.StringValue(repos.GetFullName())
 
 	resp.State.Set(ctx, &model)
 }
