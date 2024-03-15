@@ -4,7 +4,7 @@ terraform {
   required_providers {
     github = {
       source  = "craigsloggett/github"
-      version = "dev"
+      version = "0.0.1"
     }
   }
 }

@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	"github.com/google/go-github/v60/github"
+	//"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -12,7 +12,6 @@ import (
 var _ datasource.DataSource = &GitHubRepository{}
 
 type GitHubRepository struct {
-	client *github.Client
 }
 
 type GitHubRepositoryModel struct {
