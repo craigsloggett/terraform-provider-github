@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -66,20 +67,46 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 }
 
 func (d *GitHubRepository) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = req.ProviderData
+	// ProviderData is nil until the ConfigureProvider RPC is called.
+	if req.ProviderData == nil {
+		return
+	}
+
+	client, ok := req.ProviderData.(*github.Client)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *github.Client, got: %T", req.ProviderData),
+		)
+	}
+
+	d.client = client
 }
 
 func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var model GitHubRepositoryModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 	client := d.client.(*github.Client)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 
-	repos, _, _ := client.Repositories.Get(ctx, model.Owner.ValueString(), model.Repo.ValueString())
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	model.Id = types.Int64Value(repos.GetID())
-	model.Name = types.StringValue(repos.GetName())
-	model.FullName = types.StringValue(repos.GetFullName())
+	repo, _, err := client.Repositories.Get(ctx, model.Owner.ValueString(), model.Repo.ValueString())
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Communicating with the GitHub API",
+			fmt.Sprintf("Unable to get repository, got error: %s", err),
+		)
+		return
+	}
+
+	model.Id = types.Int64Value(repo.GetID())
+	model.Name = types.StringValue(repo.GetName())
+	model.FullName = types.StringValue(repo.GetFullName())
 
 	resp.State.Set(ctx, &model)
 }
