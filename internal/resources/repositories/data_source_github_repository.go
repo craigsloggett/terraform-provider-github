@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var _ datasource.DataSource = &GitHubRepository{}
@@ -18,7 +17,7 @@ type GitHubRepository struct {
 type GitHubRepositoryModel struct {
 	Owner    types.String `tfsdk:"owner"`
 	Repo     types.String `tfsdk:"repo"`
-	Id       types.Number `tfsdk:"id"`
+	Id       types.Int64  `tfsdk:"id"`
 	Name     types.String `tfsdk:"name"`
 	FullName types.String `tfsdk:"full_name"`
 }
@@ -44,7 +43,7 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 				MarkdownDescription: "The name of the repository.",
 				Required:            true,
 			},
-			"id": schema.NumberAttribute{
+			"id": schema.Int64Attribute{
 				Description:         "GitHub ID for the repository.",
 				MarkdownDescription: "GitHub ID for the repository.",
 				Computed:            true,
@@ -68,7 +67,10 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var model GitHubRepositoryModel
 
-	model.Name = basetypes.NewStringValue("testing")
+	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
+
+	model.Id = types.Int64Value(192848)
+	model.Name = types.StringValue("test_name_from_provider")
 
 	resp.State.Set(ctx, &model)
 }

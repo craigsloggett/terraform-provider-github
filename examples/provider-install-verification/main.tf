@@ -1,4 +1,4 @@
 data "github_repository" "example" {
-	owner = "test"
-	repo = "test"
+	owner = "test_owner"
+	repo = "test_repo"
 }
