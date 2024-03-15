@@ -18,7 +18,7 @@ type GitHubProvider struct {
 }
 
 type GitHubProviderModel struct {
-	ApiToken types.String `tfsdk:"token"`
+	Token types.String `tfsdk:"token"`
 }
 
 func NewGitHubProvider() func() provider.Provider {
@@ -43,20 +43,21 @@ func (p *GitHubProvider) Schema(_ context.Context, _ provider.SchemaRequest, res
 }
 
 func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	apiToken := os.Getenv("GITHUB_TOKEN")
-
 	var data GitHubProviderModel
+	var token string
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	token = os.Getenv("GITHUB_TOKEN")
 
-	if data.ApiToken.ValueString() != "" {
-		apiToken = data.ApiToken.ValueString()
+	// Prioritize a token configured in the provider over the GITHUB_TOKEN environment variable.
+	if data.Token.ValueString() != "" {
+		token = data.Token.ValueString()
 	}
 
-	if apiToken == "" {
+	if token == "" {
 		resp.Diagnostics.AddError(
-			"Missing API Token Configuration",
-			"While configuring the provider, a GitHub API token was not found in "+
+			"Missing Personal Access Token Configuration",
+			"While configuring the provider, a GitHub token was not found in "+
 				"the GITHUB_TOKEN environment variable or provider configuration "+
 				"block token attribute.",
 		)
