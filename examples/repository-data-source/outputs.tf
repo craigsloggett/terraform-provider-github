@@ -88,6 +88,36 @@ output "github_repository_example_fork" {
   value       = data.github_repository.example.fork
 }
 
+output "github_repository_example_forks_count" {
+  description = "The number of forks of the repository."
+  value       = data.github_repository.example.forks_count
+}
+
+output "github_repository_example_network_count" {
+  description = "The count of the repository network."
+  value       = data.github_repository.example.network_count
+}
+
+output "github_repository_example_open_issues_count" {
+  description = "The number of open issues in the repository."
+  value       = data.github_repository.example.open_issues_count
+}
+
+output "github_repository_example_stargazers_count" {
+  description = "The number of users who have starred the repository."
+  value       = data.github_repository.example.stargazers_count
+}
+
+output "github_repository_example_subscribers_count" {
+  description = "The number of users subscribed to the repository."
+  value       = data.github_repository.example.subscribers_count
+}
+
+output "github_repository_example_size" {
+  description = "The size of the repository, in kilobytes."
+  value       = data.github_repository.example.size
+}
+
 output "github_repository_example_auto_init" {
   description = "This is an example."
   value       = data.github_repository.example.auto_init

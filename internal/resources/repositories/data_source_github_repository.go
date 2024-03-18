@@ -35,6 +35,12 @@ type GitHubRepositoryModel struct {
 	SVNURL                    types.String `tfsdk:"svn_url"`
 	Language                  types.String `tfsdk:"language"`
 	Fork                      types.Bool   `tfsdk:"fork"`
+	ForksCount                types.Int64  `tfsdk:"forks_count"`
+	NetworkCount              types.Int64  `tfsdk:"network_count"`
+	OpenIssuesCount           types.Int64  `tfsdk:"open_issues_count"`
+	StargazersCount           types.Int64  `tfsdk:"stargazers_count"`
+	SubscribersCount          types.Int64  `tfsdk:"subscribers_count"`
+	Size                      types.Int64  `tfsdk:"size"`
 	AutoInit                  types.Bool   `tfsdk:"auto_init"`
 	AllowRebaseMerge          types.Bool   `tfsdk:"allow_rebase_merge"`
 	AllowUpdateBranch         types.Bool   `tfsdk:"allow_update_branch"`
@@ -152,6 +158,36 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 			"fork": schema.BoolAttribute{
 				Description:         "Indicates if the repository is a fork.",
 				MarkdownDescription: "Indicates if the repository is a fork.",
+				Computed:            true,
+			},
+			"forks_count": schema.Int64Attribute{
+				Description:         "The number of forks of the repository.",
+				MarkdownDescription: "The number of forks of the repository.",
+				Computed:            true,
+			},
+			"network_count": schema.Int64Attribute{
+				Description:         "The number of repositories in the network.",
+				MarkdownDescription: "The number of repositories in the network.",
+				Computed:            true,
+			},
+			"open_issues_count": schema.Int64Attribute{
+				Description:         "The number of open issues in the repository.",
+				MarkdownDescription: "The number of open issues in the repository.",
+				Computed:            true,
+			},
+			"stargazers_count": schema.Int64Attribute{
+				Description:         "The number of users who have starred the repository.",
+				MarkdownDescription: "The number of users who have starred the repository.",
+				Computed:            true,
+			},
+			"subscribers_count": schema.Int64Attribute{
+				Description:         "The number of users subscribed to the repository.",
+				MarkdownDescription: "The number of users subscribed to the repository.",
+				Computed:            true,
+			},
+			"size": schema.Int64Attribute{
+				Description:         "The size of the repository, in kilobytes.",
+				MarkdownDescription: "The size of the repository, in kilobytes.",
 				Computed:            true,
 			},
 			"auto_init": schema.BoolAttribute{
@@ -303,6 +339,12 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.SVNURL = types.StringValue(repo.GetSVNURL())
 	model.Language = types.StringValue(repo.GetLanguage())
 	model.Fork = types.BoolValue(repo.GetFork())
+	model.ForksCount = types.Int64Value(int64(repo.GetForksCount()))
+	model.NetworkCount = types.Int64Value(int64(repo.GetNetworkCount()))
+	model.OpenIssuesCount = types.Int64Value(int64(repo.GetOpenIssuesCount()))
+	model.StargazersCount = types.Int64Value(int64(repo.GetStargazersCount()))
+	model.SubscribersCount = types.Int64Value(int64(repo.GetSubscribersCount()))
+	model.Size = types.Int64Value(int64(repo.GetSize()))
 	model.AutoInit = types.BoolValue(repo.GetAutoInit())
 	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
 	model.AllowUpdateBranch = types.BoolValue(repo.GetAllowUpdateBranch())
