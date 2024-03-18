@@ -17,11 +17,27 @@ type GitHubRepository struct {
 }
 
 type GitHubRepositoryModel struct {
-	Owner    types.String `tfsdk:"owner"`
-	Repo     types.String `tfsdk:"repo"`
-	Id       types.Int64  `tfsdk:"id"`
-	Name     types.String `tfsdk:"name"`
-	FullName types.String `tfsdk:"full_name"`
+	Owner                    types.String `tfsdk:"owner"`
+	Repo                     types.String `tfsdk:"repo"`
+	Id                       types.Int64  `tfsdk:"id"`
+	NodeID                   types.String `tfsdk:"node_id"`
+	Name                     types.String `tfsdk:"name"`
+	FullName                 types.String `tfsdk:"full_name"`
+	Description              types.String `tfsdk:"description"`
+	Homepage                 types.String `tfsdk:"homepage"`
+	DefaultBranch            types.String `tfsdk:"default_branch"`
+	MasterBranch             types.String `tfsdk:"master_branch"`
+	HTMLURL                  types.String `tfsdk:"html_url"`
+	CloneURL                 types.String `tfsdk:"clone_url"`
+	GitURL                   types.String `tfsdk:"git_url"`
+	MirrorURL                types.String `tfsdk:"mirror_url"`
+	SSHURL                   types.String `tfsdk:"ssh_url"`
+	SVNURL                   types.String `tfsdk:"svn_url"`
+	Language                 types.String `tfsdk:"language"`
+	SquashMergeCommitTitle   types.String `tfsdk:"squash_merge_commit_title"`
+	SquashMergeCommitMessage types.String `tfsdk:"squash_merge_commit_message"`
+	MergeCommitTitle         types.String `tfsdk:"merge_commit_title"`
+	MergeCommitMessage       types.String `tfsdk:"merge_commit_message"`
 }
 
 func NewGitHubRepository() datasource.DataSource {
@@ -50,6 +66,11 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 				MarkdownDescription: "GitHub ID for the repository.",
 				Computed:            true,
 			},
+			"node_id": schema.StringAttribute{
+				Description:         "The node ID of the repository.",
+				MarkdownDescription: "The node ID of the repository.",
+				Computed:            true,
+			},
 			"name": schema.StringAttribute{
 				Description:         "The name of the repository.",
 				MarkdownDescription: "The name of the repository.",
@@ -60,6 +81,81 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 				MarkdownDescription: "The full name of the repository.",
 				Computed:            true,
 			},
+			"description": schema.StringAttribute{
+				Description:         "The description of the repository.",
+				MarkdownDescription: "The description of the repository.",
+				Computed:            true,
+			},
+			"homepage": schema.StringAttribute{
+				Description:         "The homepage of the repository.",
+				MarkdownDescription: "The homepage of the repository.",
+				Computed:            true,
+			},
+			"default_branch": schema.StringAttribute{
+				Description:         "The repository's default branch.",
+				MarkdownDescription: "The repository's default branch.",
+				Computed:            true,
+			},
+			"master_branch": schema.StringAttribute{
+				Description:         "The repository's master branch.",
+				MarkdownDescription: "The repository's master branch.",
+				Computed:            true,
+			},
+			"html_url": schema.StringAttribute{
+				Description:         "The HTML URL of the repository.",
+				MarkdownDescription: "The HTML URL of the repository.",
+				Computed:            true,
+			},
+			"clone_url": schema.StringAttribute{
+				Description:         "The URL used for cloning the repository.",
+				MarkdownDescription: "The URL used for cloning the repository.",
+				Computed:            true,
+			},
+			"git_url": schema.StringAttribute{
+				Description:         "The git URL of the repository.",
+				MarkdownDescription: "The git URL of the repository.",
+				Computed:            true,
+			},
+			"mirror_url": schema.StringAttribute{
+				Description:         "The mirror URL of the repository.",
+				MarkdownDescription: "The mirror URL of the repository.",
+				Computed:            true,
+			},
+			"ssh_url": schema.StringAttribute{
+				Description:         "The SSH URL of the repository.",
+				MarkdownDescription: "The SSH URL of the repository.",
+				Computed:            true,
+			},
+			"svn_url": schema.StringAttribute{
+				Description:         "The SVN URL of the repository.",
+				MarkdownDescription: "The SVN URL of the repository.",
+				Computed:            true,
+			},
+			"language": schema.StringAttribute{
+				Description:         "The primary language of the repository.",
+				MarkdownDescription: "The primary language of the repository.",
+				Computed:            true,
+			},
+			"squash_merge_commit_title": schema.StringAttribute{
+				Description:         "The title of squash merge commits for pull requests.",
+				MarkdownDescription: "The title of squash merge commits for pull requests.",
+				Computed:            true,
+			},
+			"squash_merge_commit_message": schema.StringAttribute{
+				Description:         "The message of squash merge commits for pull requests.",
+				MarkdownDescription: "The message of squash merge commits for pull requests.",
+				Computed:            true,
+			},
+			"merge_commit_title": schema.StringAttribute{
+				Description:         "The title of merge commits for pull requests.",
+				MarkdownDescription: "The title of merge commits for pull requests.",
+				Computed:            true,
+			},
+			"merge_commit_message": schema.StringAttribute{
+				Description:         "The message of merge commits for pull requests.",
+				MarkdownDescription: "The message of merge commits for pull requests.",
+				Computed:            true,
+			},
 		},
 		Description:         "Use this data source to retrieve a list of GitHub repositories.",
 		MarkdownDescription: "Use this data source to retrieve a list of GitHub repositories.",
@@ -67,7 +163,6 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 }
 
 func (d *GitHubRepository) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	// ProviderData is nil until the ConfigureProvider RPC is called.
 	if req.ProviderData == nil {
 		return
 	}
@@ -115,8 +210,24 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	model.Id = types.Int64Value(repo.GetID())
+	model.NodeID = types.StringValue(repo.GetNodeID())
 	model.Name = types.StringValue(repo.GetName())
 	model.FullName = types.StringValue(repo.GetFullName())
+	model.Description = types.StringValue(repo.GetDescription())
+	model.Homepage = types.StringValue(repo.GetHomepage())
+	model.DefaultBranch = types.StringValue(repo.GetDefaultBranch())
+	model.MasterBranch = types.StringValue(repo.GetMasterBranch())
+	model.HTMLURL = types.StringValue(repo.GetHTMLURL())
+	model.CloneURL = types.StringValue(repo.GetCloneURL())
+	model.GitURL = types.StringValue(repo.GetGitURL())
+	model.MirrorURL = types.StringValue(repo.GetMirrorURL())
+	model.SSHURL = types.StringValue(repo.GetSSHURL())
+	model.SVNURL = types.StringValue(repo.GetSVNURL())
+	model.Language = types.StringValue(repo.GetLanguage())
+	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
 
 	resp.State.Set(ctx, &model)
 }
