@@ -5,6 +5,7 @@ go 1.22.1
 require (
 	github.com/google/go-github/v60 v60.0.0
 	github.com/hashicorp/terraform-plugin-framework v1.6.1
+	github.com/hashicorp/terraform-plugin-framework-timetypes v0.3.0
 )
 
 require (

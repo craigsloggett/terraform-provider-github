@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/go-github/v60/github"
+	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,46 +18,49 @@ type GitHubRepository struct {
 }
 
 type GitHubRepositoryModel struct {
-	Owner                     types.String `tfsdk:"owner"`
-	Repo                      types.String `tfsdk:"repo"`
-	Id                        types.Int64  `tfsdk:"id"`
-	NodeID                    types.String `tfsdk:"node_id"`
-	Name                      types.String `tfsdk:"name"`
-	FullName                  types.String `tfsdk:"full_name"`
-	Description               types.String `tfsdk:"description"`
-	Homepage                  types.String `tfsdk:"homepage"`
-	DefaultBranch             types.String `tfsdk:"default_branch"`
-	MasterBranch              types.String `tfsdk:"master_branch"`
-	HTMLURL                   types.String `tfsdk:"html_url"`
-	CloneURL                  types.String `tfsdk:"clone_url"`
-	GitURL                    types.String `tfsdk:"git_url"`
-	MirrorURL                 types.String `tfsdk:"mirror_url"`
-	SSHURL                    types.String `tfsdk:"ssh_url"`
-	SVNURL                    types.String `tfsdk:"svn_url"`
-	Language                  types.String `tfsdk:"language"`
-	Fork                      types.Bool   `tfsdk:"fork"`
-	ForksCount                types.Int64  `tfsdk:"forks_count"`
-	NetworkCount              types.Int64  `tfsdk:"network_count"`
-	OpenIssuesCount           types.Int64  `tfsdk:"open_issues_count"`
-	StargazersCount           types.Int64  `tfsdk:"stargazers_count"`
-	SubscribersCount          types.Int64  `tfsdk:"subscribers_count"`
-	Size                      types.Int64  `tfsdk:"size"`
-	AutoInit                  types.Bool   `tfsdk:"auto_init"`
-	AllowRebaseMerge          types.Bool   `tfsdk:"allow_rebase_merge"`
-	AllowUpdateBranch         types.Bool   `tfsdk:"allow_update_branch"`
-	AllowSquashMerge          types.Bool   `tfsdk:"allow_squash_merge"`
-	AllowMergeCommit          types.Bool   `tfsdk:"allow_merge_commit"`
-	AllowAutoMerge            types.Bool   `tfsdk:"allow_auto_merge"`
-	AllowForking              types.Bool   `tfsdk:"allow_forking"`
-	WebCommitSignoffRequired  types.Bool   `tfsdk:"web_commit_signoff_required"`
-	DeleteBranchOnMerge       types.Bool   `tfsdk:"delete_branch_on_merge"`
-	UseSquashPRTitleAsDefault types.Bool   `tfsdk:"use_squash_pr_title_as_default"`
-	SquashMergeCommitTitle    types.String `tfsdk:"squash_merge_commit_title"`
-	SquashMergeCommitMessage  types.String `tfsdk:"squash_merge_commit_message"`
-	MergeCommitTitle          types.String `tfsdk:"merge_commit_title"`
-	MergeCommitMessage        types.String `tfsdk:"merge_commit_message"`
-	Archived                  types.Bool   `tfsdk:"archived"`
-	Disabled                  types.Bool   `tfsdk:"disabled"`
+	Owner                     types.String      `tfsdk:"owner"`
+	Repo                      types.String      `tfsdk:"repo"`
+	Id                        types.Int64       `tfsdk:"id"`
+	NodeID                    types.String      `tfsdk:"node_id"`
+	Name                      types.String      `tfsdk:"name"`
+	FullName                  types.String      `tfsdk:"full_name"`
+	Description               types.String      `tfsdk:"description"`
+	Homepage                  types.String      `tfsdk:"homepage"`
+	DefaultBranch             types.String      `tfsdk:"default_branch"`
+	MasterBranch              types.String      `tfsdk:"master_branch"`
+	CreatedAt                 timetypes.RFC3339 `tfsdk:"created_at"`
+	PushedAt                  timetypes.RFC3339 `tfsdk:"pushed_at"`
+	UpdatedAt                 timetypes.RFC3339 `tfsdk:"updated_at"`
+	HTMLURL                   types.String      `tfsdk:"html_url"`
+	CloneURL                  types.String      `tfsdk:"clone_url"`
+	GitURL                    types.String      `tfsdk:"git_url"`
+	MirrorURL                 types.String      `tfsdk:"mirror_url"`
+	SSHURL                    types.String      `tfsdk:"ssh_url"`
+	SVNURL                    types.String      `tfsdk:"svn_url"`
+	Language                  types.String      `tfsdk:"language"`
+	Fork                      types.Bool        `tfsdk:"fork"`
+	ForksCount                types.Int64       `tfsdk:"forks_count"`
+	NetworkCount              types.Int64       `tfsdk:"network_count"`
+	OpenIssuesCount           types.Int64       `tfsdk:"open_issues_count"`
+	StargazersCount           types.Int64       `tfsdk:"stargazers_count"`
+	SubscribersCount          types.Int64       `tfsdk:"subscribers_count"`
+	Size                      types.Int64       `tfsdk:"size"`
+	AutoInit                  types.Bool        `tfsdk:"auto_init"`
+	AllowRebaseMerge          types.Bool        `tfsdk:"allow_rebase_merge"`
+	AllowUpdateBranch         types.Bool        `tfsdk:"allow_update_branch"`
+	AllowSquashMerge          types.Bool        `tfsdk:"allow_squash_merge"`
+	AllowMergeCommit          types.Bool        `tfsdk:"allow_merge_commit"`
+	AllowAutoMerge            types.Bool        `tfsdk:"allow_auto_merge"`
+	AllowForking              types.Bool        `tfsdk:"allow_forking"`
+	WebCommitSignoffRequired  types.Bool        `tfsdk:"web_commit_signoff_required"`
+	DeleteBranchOnMerge       types.Bool        `tfsdk:"delete_branch_on_merge"`
+	UseSquashPRTitleAsDefault types.Bool        `tfsdk:"use_squash_pr_title_as_default"`
+	SquashMergeCommitTitle    types.String      `tfsdk:"squash_merge_commit_title"`
+	SquashMergeCommitMessage  types.String      `tfsdk:"squash_merge_commit_message"`
+	MergeCommitTitle          types.String      `tfsdk:"merge_commit_title"`
+	MergeCommitMessage        types.String      `tfsdk:"merge_commit_message"`
+	Archived                  types.Bool        `tfsdk:"archived"`
+	Disabled                  types.Bool        `tfsdk:"disabled"`
 }
 
 func NewGitHubRepository() datasource.DataSource {
@@ -118,6 +122,24 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 			"master_branch": schema.StringAttribute{
 				Description:         "The repository's master branch.",
 				MarkdownDescription: "The repository's master branch.",
+				Computed:            true,
+			},
+			"created_at": schema.StringAttribute{
+				CustomType:          timetypes.RFC3339Type{},
+				Description:         "The timestamp of when the repository was created on GitHub.",
+				MarkdownDescription: "The timestamp of when the repository was created on GitHub.",
+				Computed:            true,
+			},
+			"pushed_at": schema.StringAttribute{
+				CustomType:          timetypes.RFC3339Type{},
+				Description:         "The timestamp of the last push to the repository.",
+				MarkdownDescription: "The timestamp of the last push to the repository.",
+				Computed:            true,
+			},
+			"updated_at": schema.StringAttribute{
+				CustomType:          timetypes.RFC3339Type{},
+				Description:         "The timestamp of when the repository was last updated.",
+				MarkdownDescription: "The timestamp of when the repository was last updated.",
 				Computed:            true,
 			},
 			"html_url": schema.StringAttribute{
@@ -324,6 +346,7 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	model.Id = types.Int64Value(repo.GetID())
+
 	model.NodeID = types.StringValue(repo.GetNodeID())
 	model.Name = types.StringValue(repo.GetName())
 	model.FullName = types.StringValue(repo.GetFullName())
@@ -331,6 +354,14 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.Homepage = types.StringValue(repo.GetHomepage())
 	model.DefaultBranch = types.StringValue(repo.GetDefaultBranch())
 	model.MasterBranch = types.StringValue(repo.GetMasterBranch())
+
+	createdAt := repo.GetCreatedAt()
+	pushedAt := repo.GetPushedAt()
+	updatedAt := repo.GetUpdatedAt()
+	model.CreatedAt = timetypes.NewRFC3339TimePointerValue(createdAt.GetTime())
+	model.PushedAt = timetypes.NewRFC3339TimePointerValue(pushedAt.GetTime())
+	model.UpdatedAt = timetypes.NewRFC3339TimePointerValue(updatedAt.GetTime())
+
 	model.HTMLURL = types.StringValue(repo.GetHTMLURL())
 	model.CloneURL = types.StringValue(repo.GetCloneURL())
 	model.GitURL = types.StringValue(repo.GetGitURL())
@@ -338,13 +369,16 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.SSHURL = types.StringValue(repo.GetSSHURL())
 	model.SVNURL = types.StringValue(repo.GetSVNURL())
 	model.Language = types.StringValue(repo.GetLanguage())
+
 	model.Fork = types.BoolValue(repo.GetFork())
+
 	model.ForksCount = types.Int64Value(int64(repo.GetForksCount()))
 	model.NetworkCount = types.Int64Value(int64(repo.GetNetworkCount()))
 	model.OpenIssuesCount = types.Int64Value(int64(repo.GetOpenIssuesCount()))
 	model.StargazersCount = types.Int64Value(int64(repo.GetStargazersCount()))
 	model.SubscribersCount = types.Int64Value(int64(repo.GetSubscribersCount()))
 	model.Size = types.Int64Value(int64(repo.GetSize()))
+
 	model.AutoInit = types.BoolValue(repo.GetAutoInit())
 	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
 	model.AllowUpdateBranch = types.BoolValue(repo.GetAllowUpdateBranch())
@@ -355,10 +389,12 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.WebCommitSignoffRequired = types.BoolValue(repo.GetWebCommitSignoffRequired())
 	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
 	model.UseSquashPRTitleAsDefault = types.BoolValue(repo.GetUseSquashPRTitleAsDefault())
+
 	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
 	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+
 	model.Archived = types.BoolValue(repo.GetArchived())
 	model.Disabled = types.BoolValue(repo.GetDisabled())
 
