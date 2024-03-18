@@ -68,10 +68,6 @@ func NewGitHubRepository() datasource.DataSource {
 	return &GitHubRepository{}
 }
 
-func TimeToFramework(_ context.Context, v *time.Time) timetypes.RFC3339 {
-	return timetypes.NewRFC3339TimePointerValue(v)
-}
-
 func (d *GitHubRepository) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repository"
 }
