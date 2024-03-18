@@ -17,27 +17,40 @@ type GitHubRepository struct {
 }
 
 type GitHubRepositoryModel struct {
-	Owner                    types.String `tfsdk:"owner"`
-	Repo                     types.String `tfsdk:"repo"`
-	Id                       types.Int64  `tfsdk:"id"`
-	NodeID                   types.String `tfsdk:"node_id"`
-	Name                     types.String `tfsdk:"name"`
-	FullName                 types.String `tfsdk:"full_name"`
-	Description              types.String `tfsdk:"description"`
-	Homepage                 types.String `tfsdk:"homepage"`
-	DefaultBranch            types.String `tfsdk:"default_branch"`
-	MasterBranch             types.String `tfsdk:"master_branch"`
-	HTMLURL                  types.String `tfsdk:"html_url"`
-	CloneURL                 types.String `tfsdk:"clone_url"`
-	GitURL                   types.String `tfsdk:"git_url"`
-	MirrorURL                types.String `tfsdk:"mirror_url"`
-	SSHURL                   types.String `tfsdk:"ssh_url"`
-	SVNURL                   types.String `tfsdk:"svn_url"`
-	Language                 types.String `tfsdk:"language"`
-	SquashMergeCommitTitle   types.String `tfsdk:"squash_merge_commit_title"`
-	SquashMergeCommitMessage types.String `tfsdk:"squash_merge_commit_message"`
-	MergeCommitTitle         types.String `tfsdk:"merge_commit_title"`
-	MergeCommitMessage       types.String `tfsdk:"merge_commit_message"`
+	Owner                     types.String `tfsdk:"owner"`
+	Repo                      types.String `tfsdk:"repo"`
+	Id                        types.Int64  `tfsdk:"id"`
+	NodeID                    types.String `tfsdk:"node_id"`
+	Name                      types.String `tfsdk:"name"`
+	FullName                  types.String `tfsdk:"full_name"`
+	Description               types.String `tfsdk:"description"`
+	Homepage                  types.String `tfsdk:"homepage"`
+	DefaultBranch             types.String `tfsdk:"default_branch"`
+	MasterBranch              types.String `tfsdk:"master_branch"`
+	HTMLURL                   types.String `tfsdk:"html_url"`
+	CloneURL                  types.String `tfsdk:"clone_url"`
+	GitURL                    types.String `tfsdk:"git_url"`
+	MirrorURL                 types.String `tfsdk:"mirror_url"`
+	SSHURL                    types.String `tfsdk:"ssh_url"`
+	SVNURL                    types.String `tfsdk:"svn_url"`
+	Language                  types.String `tfsdk:"language"`
+	Fork                      types.Bool   `tfsdk:"fork"`
+	AutoInit                  types.Bool   `tfsdk:"auto_init"`
+	AllowRebaseMerge          types.Bool   `tfsdk:"allow_rebase_merge"`
+	AllowUpdateBranch         types.Bool   `tfsdk:"allow_update_branch"`
+	AllowSquashMerge          types.Bool   `tfsdk:"allow_squash_merge"`
+	AllowMergeCommit          types.Bool   `tfsdk:"allow_merge_commit"`
+	AllowAutoMerge            types.Bool   `tfsdk:"allow_auto_merge"`
+	AllowForking              types.Bool   `tfsdk:"allow_forking"`
+	WebCommitSignoffRequired  types.Bool   `tfsdk:"web_commit_signoff_required"`
+	DeleteBranchOnMerge       types.Bool   `tfsdk:"delete_branch_on_merge"`
+	UseSquashPRTitleAsDefault types.Bool   `tfsdk:"use_squash_pr_title_as_default"`
+	SquashMergeCommitTitle    types.String `tfsdk:"squash_merge_commit_title"`
+	SquashMergeCommitMessage  types.String `tfsdk:"squash_merge_commit_message"`
+	MergeCommitTitle          types.String `tfsdk:"merge_commit_title"`
+	MergeCommitMessage        types.String `tfsdk:"merge_commit_message"`
+	Archived                  types.Bool   `tfsdk:"archived"`
+	Disabled                  types.Bool   `tfsdk:"disabled"`
 }
 
 func NewGitHubRepository() datasource.DataSource {
@@ -136,6 +149,61 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 				MarkdownDescription: "The primary language of the repository.",
 				Computed:            true,
 			},
+			"fork": schema.BoolAttribute{
+				Description:         "Indicates if the repository is a fork.",
+				MarkdownDescription: "Indicates if the repository is a fork.",
+				Computed:            true,
+			},
+			"auto_init": schema.BoolAttribute{
+				Description:         "Indicates if the repository is initialized with a README.",
+				MarkdownDescription: "Indicates if the repository is initialized with a README.",
+				Computed:            true,
+			},
+			"allow_rebase_merge": schema.BoolAttribute{
+				Description:         "Indicates if rebase merging is allowed in the repository.",
+				MarkdownDescription: "Indicates if rebase merging is allowed in the repository.",
+				Computed:            true,
+			},
+			"allow_update_branch": schema.BoolAttribute{
+				Description:         "Indicates if updating a pull request head branch that is behind its base branch is allowed.",
+				MarkdownDescription: "Indicates if updating a pull request head branch that is behind its base branch is allowed.",
+				Computed:            true,
+			},
+			"allow_squash_merge": schema.BoolAttribute{
+				Description:         "Indicates if squash merging is allowed in the repository.",
+				MarkdownDescription: "Indicates if squash merging is allowed in the repository.",
+				Computed:            true,
+			},
+			"allow_merge_commit": schema.BoolAttribute{
+				Description:         "Indicates if merge commits are allowed in the repository.",
+				MarkdownDescription: "Indicates if merge commits are allowed in the repository.",
+				Computed:            true,
+			},
+			"allow_auto_merge": schema.BoolAttribute{
+				Description:         "Indicates if auto-merging is allowed in the repository.",
+				MarkdownDescription: "Indicates if auto-merging is allowed in the repository.",
+				Computed:            true,
+			},
+			"allow_forking": schema.BoolAttribute{
+				Description:         "Indicates if forking is allowed for the repository.",
+				MarkdownDescription: "Indicates if forking is allowed for the repository.",
+				Computed:            true,
+			},
+			"web_commit_signoff_required": schema.BoolAttribute{
+				Description:         "Indicates if commit signoff is required for web-based commits.",
+				MarkdownDescription: "Indicates if commit signoff is required for web-based commits.",
+				Computed:            true,
+			},
+			"delete_branch_on_merge": schema.BoolAttribute{
+				Description:         "Indicates if branches are automatically deleted when pull requests are merged.",
+				MarkdownDescription: "Indicates if branches are automatically deleted when pull requests are merged.",
+				Computed:            true,
+			},
+			"use_squash_pr_title_as_default": schema.BoolAttribute{
+				Description:         "Indicates if the squash PR title is used as the default commit message.",
+				MarkdownDescription: "Indicates if the squash PR title is used as the default commit message.",
+				Computed:            true,
+			},
 			"squash_merge_commit_title": schema.StringAttribute{
 				Description:         "The title of squash merge commits for pull requests.",
 				MarkdownDescription: "The title of squash merge commits for pull requests.",
@@ -154,6 +222,16 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 			"merge_commit_message": schema.StringAttribute{
 				Description:         "The message of merge commits for pull requests.",
 				MarkdownDescription: "The message of merge commits for pull requests.",
+				Computed:            true,
+			},
+			"archived": schema.BoolAttribute{
+				Description:         "Indicates if the repository is archived.",
+				MarkdownDescription: "Indicates if the repository is archived.",
+				Computed:            true,
+			},
+			"disabled": schema.BoolAttribute{
+				Description:         "Indicates if the repository is disabled.",
+				MarkdownDescription: "Indicates if the repository is disabled.",
 				Computed:            true,
 			},
 		},
@@ -224,10 +302,23 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.SSHURL = types.StringValue(repo.GetSSHURL())
 	model.SVNURL = types.StringValue(repo.GetSVNURL())
 	model.Language = types.StringValue(repo.GetLanguage())
+	model.Fork = types.BoolValue(repo.GetFork())
+	model.AutoInit = types.BoolValue(repo.GetAutoInit())
+	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	model.AllowUpdateBranch = types.BoolValue(repo.GetAllowUpdateBranch())
+	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.AllowForking = types.BoolValue(repo.GetAllowForking())
+	model.WebCommitSignoffRequired = types.BoolValue(repo.GetWebCommitSignoffRequired())
+	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	model.UseSquashPRTitleAsDefault = types.BoolValue(repo.GetUseSquashPRTitleAsDefault())
 	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
 	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	model.Archived = types.BoolValue(repo.GetArchived())
+	model.Disabled = types.BoolValue(repo.GetDisabled())
 
 	resp.State.Set(ctx, &model)
 }
