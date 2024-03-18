@@ -48,6 +48,21 @@ output "github_repository_example_master_branch" {
   value       = data.github_repository.example.master_branch
 }
 
+output "github_repository_example_created_at" {
+  description = "This is an example."
+  value       = data.github_repository.example.created_at
+}
+
+output "github_repository_example_pushed_at" {
+  description = "This is an example."
+  value       = data.github_repository.example.pushed_at
+}
+
+output "github_repository_example_updated_at" {
+  description = "This is an example."
+  value       = data.github_repository.example.updated_at
+}
+
 output "github_repository_example_html_url" {
   description = "This is an example."
   value       = data.github_repository.example.html_url
