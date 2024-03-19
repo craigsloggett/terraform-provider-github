@@ -46,6 +46,7 @@ type GitHubRepositoryModel struct {
 	SubscribersCount          types.Int64       `tfsdk:"subscribers_count"`
 	Size                      types.Int64       `tfsdk:"size"`
 	AutoInit                  types.Bool        `tfsdk:"auto_init"`
+	Permissions               *permissionsModel `tfsdk:"permissions"`
 	AllowRebaseMerge          types.Bool        `tfsdk:"allow_rebase_merge"`
 	AllowUpdateBranch         types.Bool        `tfsdk:"allow_update_branch"`
 	AllowSquashMerge          types.Bool        `tfsdk:"allow_squash_merge"`
@@ -61,6 +62,14 @@ type GitHubRepositoryModel struct {
 	MergeCommitMessage        types.String      `tfsdk:"merge_commit_message"`
 	Archived                  types.Bool        `tfsdk:"archived"`
 	Disabled                  types.Bool        `tfsdk:"disabled"`
+}
+
+type permissionsModel struct {
+	Admin    types.Bool `tfsdk:"admin"`
+	Pull     types.Bool `tfsdk:"pull"`
+	Triage   types.Bool `tfsdk:"triage"`
+	Push     types.Bool `tfsdk:"push"`
+	Maintain types.Bool `tfsdk:"maintain"`
 }
 
 func NewGitHubRepository() datasource.DataSource {
@@ -216,6 +225,38 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 				Description:         "Indicates if the repository is initialized with a README.",
 				MarkdownDescription: "Indicates if the repository is initialized with a README.",
 				Computed:            true,
+			},
+			"permissions": schema.SingleNestedAttribute{
+				Description:         "A map of permissions for the repository.",
+				MarkdownDescription: "A map of permissions for the repository.",
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"admin": schema.BoolAttribute{
+						Description:         "Has Admin permissions.",
+						MarkdownDescription: "Has Admin permissions.",
+						Computed:            true,
+					},
+					"pull": schema.BoolAttribute{
+						Description:         "Has Pull permissions.",
+						MarkdownDescription: "Has Pull permissions.",
+						Computed:            true,
+					},
+					"triage": schema.BoolAttribute{
+						Description:         "Has Triage permissions.",
+						MarkdownDescription: "Has Triage permissions.",
+						Computed:            true,
+					},
+					"push": schema.BoolAttribute{
+						Description:         "Has Push permissions.",
+						MarkdownDescription: "Has Push permissions.",
+						Computed:            true,
+					},
+					"maintain": schema.BoolAttribute{
+						Description:         "Has Maintain permissions.",
+						MarkdownDescription: "Has Maintain permissions.",
+						Computed:            true,
+					},
+				},
 			},
 			"allow_rebase_merge": schema.BoolAttribute{
 				Description:         "Indicates if rebase merging is allowed in the repository.",
@@ -380,6 +421,15 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.Size = types.Int64Value(int64(repo.GetSize()))
 
 	model.AutoInit = types.BoolValue(repo.GetAutoInit())
+
+	permissions := repo.GetPermissions()
+	model.Permissions = &permissionsModel{}
+	model.Permissions.Admin = types.BoolValue(permissions["admin"])
+	model.Permissions.Pull = types.BoolValue(permissions["pull"])
+	model.Permissions.Triage = types.BoolValue(permissions["triage"])
+	model.Permissions.Push = types.BoolValue(permissions["push"])
+	model.Permissions.Maintain = types.BoolValue(permissions["maintain"])
+
 	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
 	model.AllowUpdateBranch = types.BoolValue(repo.GetAllowUpdateBranch())
 	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
