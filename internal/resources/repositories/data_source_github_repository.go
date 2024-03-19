@@ -46,7 +46,7 @@ type GitHubRepositoryModel struct {
 	SubscribersCount          types.Int64       `tfsdk:"subscribers_count"`
 	Size                      types.Int64       `tfsdk:"size"`
 	AutoInit                  types.Bool        `tfsdk:"auto_init"`
-	Permissions               permissionsModel  `tfsdk:"permissions"`
+	Permissions               *permissionsModel `tfsdk:"permissions"`
 	AllowRebaseMerge          types.Bool        `tfsdk:"allow_rebase_merge"`
 	AllowUpdateBranch         types.Bool        `tfsdk:"allow_update_branch"`
 	AllowSquashMerge          types.Bool        `tfsdk:"allow_squash_merge"`
@@ -421,8 +421,14 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.Size = types.Int64Value(int64(repo.GetSize()))
 
 	model.AutoInit = types.BoolValue(repo.GetAutoInit())
-	// WIP
-	model.Permissions.Admin = types.BoolValue(repo.GetPermissions()["admin"])
+
+	permissions := repo.GetPermissions()
+	model.Permissions = &permissionsModel{}
+	model.Permissions.Admin = types.BoolValue(permissions["admin"])
+	model.Permissions.Pull = types.BoolValue(permissions["pull"])
+	model.Permissions.Triage = types.BoolValue(permissions["triage"])
+	model.Permissions.Push = types.BoolValue(permissions["push"])
+	model.Permissions.Maintain = types.BoolValue(permissions["maintain"])
 
 	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
 	model.AllowUpdateBranch = types.BoolValue(repo.GetAllowUpdateBranch())

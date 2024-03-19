@@ -138,6 +138,31 @@ output "github_repository_example_auto_init" {
   value       = data.github_repository.example.auto_init
 }
 
+output "github_repository_example_permissions_admin" {
+  description = "This is an example."
+  value       = data.github_repository.example.permissions.admin
+}
+
+output "github_repository_example_permissions_pull" {
+  description = "This is an example."
+  value       = data.github_repository.example.permissions.pull
+}
+
+output "github_repository_example_permissions_triage" {
+  description = "This is an example."
+  value       = data.github_repository.example.permissions.triage
+}
+
+output "github_repository_example_permissions_push" {
+  description = "This is an example."
+  value       = data.github_repository.example.permissions.push
+}
+
+output "github_repository_example_permissions_maintain" {
+  description = "This is an example."
+  value       = data.github_repository.example.permissions.maintain
+}
+
 output "github_repository_example_allow_rebase_merge" {
   description = "This is an example."
   value       = data.github_repository.example.allow_rebase_merge
