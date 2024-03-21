@@ -46,6 +46,10 @@ type GitHubRepositoryModel struct {
 	SubscribersCount          types.Int64       `tfsdk:"subscribers_count"`
 	Size                      types.Int64       `tfsdk:"size"`
 	AutoInit                  types.Bool        `tfsdk:"auto_init"`
+	Parent                    types.String      `tfsdk:"parent"`
+	Source                    types.String      `tfsdk:"source"`
+	TemplateRepository        types.String      `tfsdk:"template_repository"`
+	Organization              types.String      `tfsdk:"organization"`
 	Permissions               *permissionsModel `tfsdk:"permissions"`
 	AllowRebaseMerge          types.Bool        `tfsdk:"allow_rebase_merge"`
 	AllowUpdateBranch         types.Bool        `tfsdk:"allow_update_branch"`
@@ -225,6 +229,26 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 			"auto_init": schema.BoolAttribute{
 				Description:         "Indicates if the repository is initialized with a README.",
 				MarkdownDescription: "Indicates if the repository is initialized with a README.",
+				Computed:            true,
+			},
+			"parent": schema.StringAttribute{
+				Description:         "The full name of the parent repository.",
+				MarkdownDescription: "The full name of the parent repository.",
+				Computed:            true,
+			},
+			"source": schema.StringAttribute{
+				Description:         "The full name of the source repository.",
+				MarkdownDescription: "The full name of the source repository.",
+				Computed:            true,
+			},
+			"template_repository": schema.StringAttribute{
+				Description:         "The full name of the template repository used to create this one.",
+				MarkdownDescription: "The full name of the template repository used to create this one.",
+				Computed:            true,
+			},
+			"organization": schema.StringAttribute{
+				Description:         "The name of the organization this repository is a part of.",
+				MarkdownDescription: "The name of the organization this repository is a part of.",
 				Computed:            true,
 			},
 			"permissions": schema.SingleNestedAttribute{
@@ -428,6 +452,11 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.Size = types.Int64Value(int64(repo.GetSize()))
 
 	model.AutoInit = types.BoolValue(repo.GetAutoInit())
+
+	model.Parent = types.StringValue(repo.GetParent().GetFullName())
+	model.Source = types.StringValue(repo.GetSource().GetFullName())
+	model.TemplateRepository = types.StringValue(repo.GetTemplateRepository().GetFullName())
+	model.Organization = types.StringValue(repo.GetOrganization().GetLogin())
 
 	permissions := repo.GetPermissions()
 	model.Permissions = &permissionsModel{}

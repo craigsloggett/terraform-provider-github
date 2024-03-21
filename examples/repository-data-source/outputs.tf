@@ -138,6 +138,26 @@ output "github_repository_example_auto_init" {
   value       = data.github_repository.example.auto_init
 }
 
+output "github_repository_example_parent" {
+  description = "This is an example."
+  value       = data.github_repository.example.parent
+}
+
+output "github_repository_example_source" {
+  description = "This is an example."
+  value       = data.github_repository.example.source
+}
+
+output "github_repository_example_template_repository" {
+  description = "This is an example."
+  value       = data.github_repository.example.template_repository
+}
+
+output "github_repository_example_organization" {
+  description = "This is an example."
+  value       = data.github_repository.example.organization
+}
+
 output "github_repository_example_permissions_admin" {
   description = "This is an example."
   value       = data.github_repository.example.permissions.admin
