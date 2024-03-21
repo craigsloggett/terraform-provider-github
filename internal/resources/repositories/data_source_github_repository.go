@@ -60,6 +60,7 @@ type GitHubRepositoryModel struct {
 	SquashMergeCommitMessage  types.String      `tfsdk:"squash_merge_commit_message"`
 	MergeCommitTitle          types.String      `tfsdk:"merge_commit_title"`
 	MergeCommitMessage        types.String      `tfsdk:"merge_commit_message"`
+	Topics                    types.List        `tfsdk:"topics"`
 	Archived                  types.Bool        `tfsdk:"archived"`
 	Disabled                  types.Bool        `tfsdk:"disabled"`
 }
@@ -323,6 +324,12 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 				MarkdownDescription: "The message of merge commits for pull requests.",
 				Computed:            true,
 			},
+			"topics": schema.ListAttribute{
+				ElementType:         types.StringType,
+				Description:         "The list of topics associated with the repository.",
+				MarkdownDescription: "The list of topics associated with the repository.",
+				Computed:            true,
+			},
 			"archived": schema.BoolAttribute{
 				Description:         "Indicates if the repository is archived.",
 				MarkdownDescription: "Indicates if the repository is archived.",
@@ -444,6 +451,8 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
 	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+
+	model.Topics, _ = types.ListValueFrom(ctx, types.StringType, repo.Topics)
 
 	model.Archived = types.BoolValue(repo.GetArchived())
 	model.Disabled = types.BoolValue(repo.GetDisabled())

@@ -1,4 +1,4 @@
 data "github_repository" "example" {
   owner = "craigsloggett"
-  repo  = "dotfiles"
+  repo  = "terraform-provider-github"
 }

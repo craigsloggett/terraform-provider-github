@@ -228,6 +228,11 @@ output "github_repository_example_merge_commit_message" {
   value       = data.github_repository.example.merge_commit_message
 }
 
+output "github_repository_example_topics" {
+  description = "This is an example."
+  value       = data.github_repository.example.topics
+}
+
 output "github_repository_example_archived" {
   description = "This is an example."
   value       = data.github_repository.example.archived
