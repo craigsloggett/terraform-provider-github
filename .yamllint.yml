@@ -26,4 +26,8 @@ rules:
     level: error
     spaces: 2
 
+  quoted-strings:
+    quote-type: single
+    required: only-when-needed
+
   line-length: disable
