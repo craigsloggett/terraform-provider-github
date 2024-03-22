@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/craigsloggett/terraform-provider-github/internal/resources/repositories"
+	"github.com/craigsloggett/terraform-provider-github/internal/datasources/repositories"
 	"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
