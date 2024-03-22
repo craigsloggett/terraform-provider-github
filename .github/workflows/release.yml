@@ -1,13 +1,14 @@
 name: Release
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - add-release-pipeline
-    paths:
-      - '**/*.go'
-      - 'LICENSE'
+  - pull_request
+  #  workflow_dispatch:
+  #  push:
+  #    branches:
+  #      - add-release-pipeline
+  #    paths:
+  #      - '**/*.go'
+  #      - 'LICENSE'
 
 permissions:
   contents: write
