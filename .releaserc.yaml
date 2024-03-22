@@ -1,5 +1,5 @@
 branches:
-  - refs/pull/13/merge
+  - add-release-pipeline
 ci: false
 plugins:
   - - "@semantic-release/commit-analyzer"
