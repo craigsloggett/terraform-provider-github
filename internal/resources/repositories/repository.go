@@ -23,10 +23,13 @@ type GitHubRepositoryModel struct {
 	Description              types.String `tfsdk:"description"`
 	Homepage                 types.String `tfsdk:"homepage"`
 	Private                  types.Bool   `tfsdk:"private"`
+	Visibility               types.String `tfsdk:"visibility"` // Only for organization repositories.
 	HasIssues                types.Bool   `tfsdk:"has_issues"`
 	HasProjects              types.Bool   `tfsdk:"has_projects"`
 	HasWiki                  types.Bool   `tfsdk:"has_wiki"`
-	HasDiscussions           types.Bool   `tfsdk:"has_discussions"`
+	HasDiscussions           types.Bool   `tfsdk:"has_discussions"` // Only in personal repositories.
+	HasDownloads             types.Bool   `tfsdk:"has_downloads"`
+	IsTemplate               types.Bool   `tfsdk:"is_template"`
 	TeamID                   types.Int64  `tfsdk:"team_id"`
 	AutoInit                 types.Bool   `tfsdk:"auto_init"`
 	GitIgnoreTemplate        types.String `tfsdk:"git_ignore_template"`
@@ -40,8 +43,6 @@ type GitHubRepositoryModel struct {
 	SquashMergeCommitMessage types.String `tfsdk:"squash_merge_commit_message"`
 	MergeCommitTitle         types.String `tfsdk:"merge_commit_title"`
 	MergeCommitMessage       types.String `tfsdk:"merge_commit_message"`
-	HasDownloads             types.Bool   `tfsdk:"has_downloads"`
-	IsTemplate               types.Bool   `tfsdk:"is_template"`
 }
 
 func NewGitHubRepository() resource.Resource {
@@ -75,6 +76,11 @@ func (r *GitHubRepository) Schema(_ context.Context, _ resource.SchemaRequest, r
 				MarkdownDescription: "Indicates if the repository is private.",
 				Optional:            true,
 			},
+			"visibility": schema.StringAttribute{
+				Description:         "The visibility of the repository.",
+				MarkdownDescription: "The visibility of the repository.",
+				Optional:            true,
+			},
 			"has_issues": schema.BoolAttribute{
 				Description:         "Indicates if the repository has issues enabled.",
 				MarkdownDescription: "Indicates if the repository has issues enabled.",
@@ -93,6 +99,16 @@ func (r *GitHubRepository) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"has_discussions": schema.BoolAttribute{
 				Description:         "Indicates if the repository has discussions enabled.",
 				MarkdownDescription: "Indicates if the repository has discussions enabled.",
+				Optional:            true,
+			},
+			"has_downloads": schema.BoolAttribute{
+				Description:         "Indicates if the repository has downloads enabled.",
+				MarkdownDescription: "Indicates if the repository has downloads enabled.",
+				Optional:            true,
+			},
+			"is_template": schema.BoolAttribute{
+				Description:         "Indicates if the repository is marked as a template repository.",
+				MarkdownDescription: "Indicates if the repository is marked as a template repository.",
 				Optional:            true,
 			},
 			"team_id": schema.Int64Attribute{
@@ -160,16 +176,6 @@ func (r *GitHubRepository) Schema(_ context.Context, _ resource.SchemaRequest, r
 				MarkdownDescription: "The message of merge commits for pull requests.",
 				Optional:            true,
 			},
-			"has_downloads": schema.BoolAttribute{
-				Description:         "Indicates if the repository has downloads enabled.",
-				MarkdownDescription: "Indicates if the repository has downloads enabled.",
-				Optional:            true,
-			},
-			"is_template": schema.BoolAttribute{
-				Description:         "Indicates if the repository is marked as a template repository.",
-				MarkdownDescription: "Indicates if the repository is marked as a template repository.",
-				Optional:            true,
-			},
 		},
 		Description:         "Use this resource to create a GitHub repository for the authenticated user.",
 		MarkdownDescription: "Use this resource to create a GitHub repository for the authenticated user.",
@@ -232,7 +238,7 @@ func (r *GitHubRepository) Create(ctx context.Context, req resource.CreateReques
 		Name: github.String(types.String.ValueString(model.Name)),
 	}
 
-	repo, _, err := client.Repositories.Create(ctx, "", repository)
+	_, _, err := client.Repositories.Create(ctx, "", repository)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -241,8 +247,6 @@ func (r *GitHubRepository) Create(ctx context.Context, req resource.CreateReques
 		)
 		return
 	}
-
-	model.Id = types.Int64Value(repo.GetID())
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
