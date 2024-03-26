@@ -19,7 +19,10 @@ type GitHubRepository struct {
 }
 
 type GitHubRepositoryModel struct {
+	Id                       types.Int64  `tfsdk:"id"`
+	NodeId                   types.String `tfsdk:"node_id"`
 	Name                     types.String `tfsdk:"name"`
+	FullName                 types.String `tfsdk:"full_name"`
 	Description              types.String `tfsdk:"description"`
 	Homepage                 types.String `tfsdk:"homepage"`
 	Private                  types.Bool   `tfsdk:"private"`    // Only for personal repositories.
@@ -30,7 +33,7 @@ type GitHubRepositoryModel struct {
 	HasDiscussions           types.Bool   `tfsdk:"has_discussions"` // Only for personal repositories.
 	HasDownloads             types.Bool   `tfsdk:"has_downloads"`
 	IsTemplate               types.Bool   `tfsdk:"is_template"`
-	TeamID                   types.Int64  `tfsdk:"team_id"` // Only for organization repositories.
+	TeamId                   types.Int64  `tfsdk:"team_id"` // Only for organization repositories.
 	AutoInit                 types.Bool   `tfsdk:"auto_init"`
 	GitignoreTemplate        types.String `tfsdk:"git_ignore_template"`
 	LicenseTemplate          types.String `tfsdk:"license_template"`
@@ -58,10 +61,25 @@ func (r *GitHubRepository) Metadata(_ context.Context, req resource.MetadataRequ
 func (r *GitHubRepository) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Description:         "The name of the repository.",
+				MarkdownDescription: "The name of the repository.",
+				Computed:            true,
+			},
+			"node_id": schema.StringAttribute{
+				Description:         "The node ID of the repository.",
+				MarkdownDescription: "The node ID of the repository.",
+				Computed:            true,
+			},
 			"name": schema.StringAttribute{
 				Description:         "The name of the repository.",
 				MarkdownDescription: "The name of the repository.",
 				Required:            true,
+			},
+			"full_name": schema.StringAttribute{
+				Description:         "The full name of the repository.",
+				MarkdownDescription: "The full name of the repository.",
+				Computed:            true,
 			},
 			"description": schema.StringAttribute{
 				Description:         "The description of the repository.",
@@ -257,7 +275,7 @@ func (r *GitHubRepository) Create(ctx context.Context, req resource.CreateReques
 		HasDiscussions:           github.Bool(types.Bool.ValueBool(model.HasDiscussions)),
 		HasDownloads:             github.Bool(types.Bool.ValueBool(model.HasDownloads)),
 		IsTemplate:               github.Bool(types.Bool.ValueBool(model.IsTemplate)),
-		TeamID:                   github.Int64(types.Int64.ValueInt64(model.TeamID)),
+		TeamID:                   github.Int64(types.Int64.ValueInt64(model.TeamId)),
 		AutoInit:                 github.Bool(types.Bool.ValueBool(model.AutoInit)),
 		GitignoreTemplate:        github.String(types.String.ValueString(model.GitignoreTemplate)),
 		LicenseTemplate:          github.String(types.String.ValueString(model.LicenseTemplate)),
