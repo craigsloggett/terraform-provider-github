@@ -70,6 +70,7 @@ func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	}
 
 	resp.DataSourceData = github.NewClient(nil).WithAuthToken(token)
+	resp.ResourceData = github.NewClient(nil).WithAuthToken(token)
 }
 
 func (p *GitHubProvider) DataSources(_ context.Context) []func() datasource.DataSource {
