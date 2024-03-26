@@ -27,17 +27,19 @@ type GitHubRepositoryModel struct {
 	HasIssues                types.Bool   `tfsdk:"has_issues"`
 	HasProjects              types.Bool   `tfsdk:"has_projects"`
 	HasWiki                  types.Bool   `tfsdk:"has_wiki"`
-	HasDiscussions           types.Bool   `tfsdk:"has_discussions"` // Only in personal repositories.
+	HasDiscussions           types.Bool   `tfsdk:"has_discussions"` // Only for personal repositories.
 	HasDownloads             types.Bool   `tfsdk:"has_downloads"`
 	IsTemplate               types.Bool   `tfsdk:"is_template"`
-	TeamID                   types.Int64  `tfsdk:"team_id"`
+	TeamID                   types.Int64  `tfsdk:"team_id"` // Only for organization repositories.
 	AutoInit                 types.Bool   `tfsdk:"auto_init"`
-	GitIgnoreTemplate        types.String `tfsdk:"git_ignore_template"`
+	GitignoreTemplate        types.String `tfsdk:"git_ignore_template"`
 	LicenseTemplate          types.String `tfsdk:"license_template"`
 	AllowSquashMerge         types.Bool   `tfsdk:"allow_squash_merge"`
 	AllowMergeCommit         types.Bool   `tfsdk:"allow_merge_commit"`
 	AllowRebaseMerge         types.Bool   `tfsdk:"allow_rebase_merge"`
 	AllowAutoMerge           types.Bool   `tfsdk:"allow_auto_merge"`
+	AllowForking             types.Bool   `tfsdk:"allow_forking"`                // Only for organization repositories.
+	WebCommitSignOffRequired types.Bool   `tfsdk:"web_commit_sign_off_required"` // Only for organization repositories.
 	DeleteBranchOnMerge      types.Bool   `tfsdk:"delete_branch_on_merge"`
 	SquashMergeCommitTitle   types.String `tfsdk:"squash_merge_commit_title"`
 	SquashMergeCommitMessage types.String `tfsdk:"squash_merge_commit_message"`
@@ -151,6 +153,16 @@ func (r *GitHubRepository) Schema(_ context.Context, _ resource.SchemaRequest, r
 				MarkdownDescription: "Indicates if auto-merging is allowed in the repository.",
 				Optional:            true,
 			},
+			"allow_forking": schema.BoolAttribute{
+				Description:         "Indicates if forking is allowed in the repository.",
+				MarkdownDescription: "Indicates if forking is allowed in the repository.",
+				Optional:            true,
+			},
+			"web_commit_sign_off_required": schema.BoolAttribute{
+				Description:         "Require contributors to sign off on web-based commits.",
+				MarkdownDescription: "Require contributors to sign off on web-based commits.",
+				Optional:            true,
+			},
 			"delete_branch_on_merge": schema.BoolAttribute{
 				Description:         "Indicates if branches are automatically deleted when pull requests are merged.",
 				MarkdownDescription: "Indicates if branches are automatically deleted when pull requests are merged.",
@@ -235,9 +247,29 @@ func (r *GitHubRepository) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	repository := &github.Repository{
-		Name:       github.String(types.String.ValueString(model.Name)),
-		Visibility: github.String(types.String.ValueString(model.Visibility)),
-		Private:    github.Bool(types.Bool.ValueBool(model.Private)),
+		Name:                     github.String(types.String.ValueString(model.Name)),
+		Description:              github.String(types.String.ValueString(model.Description)),
+		Homepage:                 github.String(types.String.ValueString(model.Homepage)),
+		Private:                  github.Bool(types.Bool.ValueBool(model.Private)),
+		HasIssues:                github.Bool(types.Bool.ValueBool(model.HasIssues)),
+		HasProjects:              github.Bool(types.Bool.ValueBool(model.HasProjects)),
+		HasWiki:                  github.Bool(types.Bool.ValueBool(model.HasWiki)),
+		HasDiscussions:           github.Bool(types.Bool.ValueBool(model.HasDiscussions)),
+		HasDownloads:             github.Bool(types.Bool.ValueBool(model.HasDownloads)),
+		IsTemplate:               github.Bool(types.Bool.ValueBool(model.IsTemplate)),
+		TeamID:                   github.Int64(types.Int64.ValueInt64(model.TeamID)),
+		AutoInit:                 github.Bool(types.Bool.ValueBool(model.AutoInit)),
+		GitignoreTemplate:        github.String(types.String.ValueString(model.GitignoreTemplate)),
+		LicenseTemplate:          github.String(types.String.ValueString(model.LicenseTemplate)),
+		AllowSquashMerge:         github.Bool(types.Bool.ValueBool(model.AllowSquashMerge)),
+		AllowMergeCommit:         github.Bool(types.Bool.ValueBool(model.AllowMergeCommit)),
+		AllowRebaseMerge:         github.Bool(types.Bool.ValueBool(model.AllowRebaseMerge)),
+		AllowAutoMerge:           github.Bool(types.Bool.ValueBool(model.AllowAutoMerge)),
+		DeleteBranchOnMerge:      github.Bool(types.Bool.ValueBool(model.DeleteBranchOnMerge)),
+		SquashMergeCommitTitle:   github.String(types.String.ValueString(model.SquashMergeCommitTitle)),
+		SquashMergeCommitMessage: github.String(types.String.ValueString(model.SquashMergeCommitMessage)),
+		MergeCommitTitle:         github.String(types.String.ValueString(model.MergeCommitTitle)),
+		MergeCommitMessage:       github.String(types.String.ValueString(model.MergeCommitMessage)),
 	}
 
 	_, _, err := client.Repositories.Create(ctx, "", repository)
