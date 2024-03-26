@@ -19,8 +19,29 @@ type GitHubRepository struct {
 }
 
 type GitHubRepositoryModel struct {
-	Id   types.Int64  `tfsdk:"id"`
-	Name types.String `tfsdk:"name"`
+	Name                     types.String `tfsdk:"name"`
+	Description              types.String `tfsdk:"description"`
+	Homepage                 types.String `tfsdk:"homepage"`
+	Private                  types.Bool   `tfsdk:"private"`
+	HasIssues                types.Bool   `tfsdk:"has_issues"`
+	HasProjects              types.Bool   `tfsdk:"has_projects"`
+	HasWiki                  types.Bool   `tfsdk:"has_wiki"`
+	HasDiscussions           types.Bool   `tfsdk:"has_discussions"`
+	TeamID                   types.Int64  `tfsdk:"team_id"`
+	AutoInit                 types.Bool   `tfsdk:"auto_init"`
+	GitIgnoreTemplate        types.String `tfsdk:"git_ignore_template"`
+	LicenseTemplate          types.String `tfsdk:"license_template"`
+	AllowSquashMerge         types.Bool   `tfsdk:"allow_squash_merge"`
+	AllowMergeCommit         types.Bool   `tfsdk:"allow_merge_commit"`
+	AllowRebaseMerge         types.Bool   `tfsdk:"allow_rebase_merge"`
+	AllowAutoMerge           types.Bool   `tfsdk:"allow_auto_merge"`
+	DeleteBranchOnMerge      types.Bool   `tfsdk:"delete_branch_on_merge"`
+	SquashMergeCommitTitle   types.String `tfsdk:"squash_merge_commit_title"`
+	SquashMergeCommitMessage types.String `tfsdk:"squash_merge_commit_message"`
+	MergeCommitTitle         types.String `tfsdk:"merge_commit_title"`
+	MergeCommitMessage       types.String `tfsdk:"merge_commit_message"`
+	HasDownloads             types.Bool   `tfsdk:"has_downloads"`
+	IsTemplate               types.Bool   `tfsdk:"is_template"`
 }
 
 func NewGitHubRepository() resource.Resource {
@@ -34,15 +55,120 @@ func (r *GitHubRepository) Metadata(_ context.Context, req resource.MetadataRequ
 func (r *GitHubRepository) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.Int64Attribute{
-				Description:         "GitHub ID for the repository.",
-				MarkdownDescription: "GitHub ID for the repository.",
-				Computed:            true,
-			},
 			"name": schema.StringAttribute{
 				Description:         "The name of the repository.",
 				MarkdownDescription: "The name of the repository.",
 				Required:            true,
+			},
+			"description": schema.StringAttribute{
+				Description:         "The description of the repository.",
+				MarkdownDescription: "The description of the repository.",
+				Optional:            true,
+			},
+			"homepage": schema.StringAttribute{
+				Description:         "The homepage of the repository.",
+				MarkdownDescription: "The homepage of the repository.",
+				Optional:            true,
+			},
+			"private": schema.BoolAttribute{
+				Description:         "Indicates if the repository is private.",
+				MarkdownDescription: "Indicates if the repository is private.",
+				Optional:            true,
+			},
+			"has_issues": schema.BoolAttribute{
+				Description:         "Indicates if the repository has issues enabled.",
+				MarkdownDescription: "Indicates if the repository has issues enabled.",
+				Optional:            true,
+			},
+			"has_projects": schema.BoolAttribute{
+				Description:         "Indicates if the repository has projects enabled.",
+				MarkdownDescription: "Indicates if the repository has projects enabled.",
+				Optional:            true,
+			},
+			"has_wiki": schema.BoolAttribute{
+				Description:         "Indicates if the repository has the wiki feature enabled.",
+				MarkdownDescription: "Indicates if the repository has the wiki feature enabled.",
+				Optional:            true,
+			},
+			"has_discussions": schema.BoolAttribute{
+				Description:         "Indicates if the repository has discussions enabled.",
+				MarkdownDescription: "Indicates if the repository has discussions enabled.",
+				Optional:            true,
+			},
+			"team_id": schema.Int64Attribute{
+				Description:         "The ID of the team that owns the repository. Only applicable to organizations.",
+				MarkdownDescription: "The ID of the team that owns the repository. Only applicable to organizations.",
+				Optional:            true,
+			},
+			"auto_init": schema.BoolAttribute{
+				Description:         "Indicates if the repository is initialized with a README.",
+				MarkdownDescription: "Indicates if the repository is initialized with a README.",
+				Optional:            true,
+			},
+			"git_ignore_template": schema.StringAttribute{
+				Description:         "The .gitignore template to apply to the repository upon creation.",
+				MarkdownDescription: "The `.gitignore` template to apply to the repository upon creation.",
+				Optional:            true,
+			},
+			"license_template": schema.StringAttribute{
+				Description:         "The license template to apply to the repository upon creation.",
+				MarkdownDescription: "The license template to apply to the repository upon creation.",
+				Optional:            true,
+			},
+			"allow_squash_merge": schema.BoolAttribute{
+				Description:         "Indicates if squash merging is allowed in the repository.",
+				MarkdownDescription: "Indicates if squash merging is allowed in the repository.",
+				Optional:            true,
+			},
+			"allow_merge_commit": schema.BoolAttribute{
+				Description:         "Indicates if merge commits are allowed in the repository.",
+				MarkdownDescription: "Indicates if merge commits are allowed in the repository.",
+				Optional:            true,
+			},
+			"allow_rebase_merge": schema.BoolAttribute{
+				Description:         "Indicates if rebase merging is allowed in the repository.",
+				MarkdownDescription: "Indicates if rebase merging is allowed in the repository.",
+				Optional:            true,
+			},
+			"allow_auto_merge": schema.BoolAttribute{
+				Description:         "Indicates if auto-merging is allowed in the repository.",
+				MarkdownDescription: "Indicates if auto-merging is allowed in the repository.",
+				Optional:            true,
+			},
+			"delete_branch_on_merge": schema.BoolAttribute{
+				Description:         "Indicates if branches are automatically deleted when pull requests are merged.",
+				MarkdownDescription: "Indicates if branches are automatically deleted when pull requests are merged.",
+				Optional:            true,
+			},
+			"squash_merge_commit_title": schema.StringAttribute{
+				Description:         "The title of squash merge commits for pull requests.",
+				MarkdownDescription: "The title of squash merge commits for pull requests.",
+				Optional:            true,
+			},
+			"squash_merge_commit_message": schema.StringAttribute{
+				Description:         "The message of squash merge commits for pull requests.",
+				MarkdownDescription: "The message of squash merge commits for pull requests.",
+				Optional:            true,
+			},
+			"merge_commit_title": schema.StringAttribute{
+				Description:         "The title of merge commits for pull requests.",
+				MarkdownDescription: "The title of merge commits for pull requests.",
+				Optional:            true,
+			},
+			"merge_commit_message": schema.StringAttribute{
+				Description:         "The message of merge commits for pull requests.",
+				MarkdownDescription: "The message of merge commits for pull requests.",
+				Optional:            true,
+			},
+			"has_downloads": schema.BoolAttribute{
+				Description:         "Indicates if the repository has downloads enabled.",
+				MarkdownDescription: "Indicates if the repository has downloads enabled.",
+				Optional:            true,
+			},
+			"is_template": schema.BoolAttribute{
+				Description:         "Indicates if the repository is marked as a template repository.",
+				MarkdownDescription: "Indicates if the repository is marked as a template repository.",
+				Optional:            true,
 			},
 		},
 		Description:         "Use this resource to create a GitHub repository for the authenticated user.",
