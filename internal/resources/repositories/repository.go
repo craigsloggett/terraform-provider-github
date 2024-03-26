@@ -22,6 +22,7 @@ type GitHubRepositoryModel struct {
 	Name                     types.String `tfsdk:"name"`
 	Description              types.String `tfsdk:"description"`
 	Homepage                 types.String `tfsdk:"homepage"`
+	Private                  types.Bool   `tfsdk:"private"`    // Only for personal repositories.
 	Visibility               types.String `tfsdk:"visibility"` // Only for organization repositories.
 	HasIssues                types.Bool   `tfsdk:"has_issues"`
 	HasProjects              types.Bool   `tfsdk:"has_projects"`
@@ -68,6 +69,11 @@ func (r *GitHubRepository) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"homepage": schema.StringAttribute{
 				Description:         "The homepage of the repository.",
 				MarkdownDescription: "The homepage of the repository.",
+				Optional:            true,
+			},
+			"private": schema.BoolAttribute{
+				Description:         "Indicates if the repository is private.",
+				MarkdownDescription: "Indicates if the repository is private.",
 				Optional:            true,
 			},
 			"visibility": schema.StringAttribute{
@@ -229,7 +235,9 @@ func (r *GitHubRepository) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	repository := &github.Repository{
-		Name: github.String(types.String.ValueString(model.Name)),
+		Name:       github.String(types.String.ValueString(model.Name)),
+		Visibility: github.String(types.String.ValueString(model.Visibility)),
+		Private:    github.Bool(types.Bool.ValueBool(model.Private)),
 	}
 
 	_, _, err := client.Repositories.Create(ctx, "", repository)

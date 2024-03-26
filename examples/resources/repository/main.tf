@@ -1,3 +1,5 @@
 resource "github_repository" "example" {
-  name = "testing-repository"
+  name       = "testing-repository"
+  private    = true
+  visibility = "public"
 }
