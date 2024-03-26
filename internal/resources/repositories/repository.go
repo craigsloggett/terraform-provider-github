@@ -71,12 +71,14 @@ func (r *GitHubRepository) Configure(_ context.Context, req resource.ConfigureRe
 func (r *GitHubRepository) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var model GitHubRepositoryModel
 
+	// Read Terraform prior state data into the model.
 	resp.Diagnostics.Append(req.State.Get(ctx, &model)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
@@ -93,6 +95,7 @@ func (r *GitHubRepository) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
+	// Read Terraform plan data into the model.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &model)...)
 
 	if resp.Diagnostics.HasError() {
@@ -115,6 +118,7 @@ func (r *GitHubRepository) Create(ctx context.Context, req resource.CreateReques
 
 	model.Id = types.Int64Value(repo.GetID())
 
+	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
