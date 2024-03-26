@@ -262,4 +262,3 @@ output "github_repository_example_disabled" {
   description = "This is an example."
   value       = data.github_repository.example.disabled
 }
-
