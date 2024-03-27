@@ -51,7 +51,7 @@ type GitHubRepositoryModel struct {
 	Parent                   *linkedRepositoryModel    `tfsdk:"parent"`
 	Source                   *linkedRepositoryModel    `tfsdk:"source"`
 	TemplateRepository       *linkedRepositoryModel    `tfsdk:"template_repository"`
-	OrganizationName         types.String              `tfsdk:"organization_name"`
+	Organization             *organizationModel        `tfsdk:"organization"`
 	Permissions              *permissionsModel         `tfsdk:"permissions"`
 	AllowRebaseMerge         types.Bool                `tfsdk:"allow_rebase_merge"`
 	AllowUpdateBranch        types.Bool                `tfsdk:"allow_update_branch"`
@@ -79,6 +79,7 @@ type GitHubRepositoryModel struct {
 	LicenseTemplate          types.String              `tfsdk:"license_template"`
 	GitignoreTemplate        types.String              `tfsdk:"gitignore_template"`
 	SecurityAndAnalysis      *securityAndAnalysisModel `tfsdk:"security_and_analysis"`
+	TeamID                   types.Int64               `tfsdk:"team_id"`
 	URL                      types.String              `tfsdk:"url"`
 	ArchiveURL               types.String              `tfsdk:"archive_url"`
 	AssigneesURL             types.String              `tfsdk:"assignees_url"`
@@ -119,18 +120,22 @@ type GitHubRepositoryModel struct {
 	Visibility               types.String              `tfsdk:"visibility"`
 }
 
+type linkedRepositoryModel struct {
+	Owner    types.String `tfsdk:"owner"`
+	Name     types.String `tfsdk:"name"`
+	FullName types.String `tfsdk:"full_name"`
+}
+
+type organizationModel struct {
+	Name types.String `tfsdk:"name"`
+}
+
 type permissionsModel struct {
 	Admin    types.Bool `tfsdk:"admin"`
 	Pull     types.Bool `tfsdk:"pull"`
 	Triage   types.Bool `tfsdk:"triage"`
 	Push     types.Bool `tfsdk:"push"`
 	Maintain types.Bool `tfsdk:"maintain"`
-}
-
-type linkedRepositoryModel struct {
-	Owner    types.String `tfsdk:"owner"`
-	Name     types.String `tfsdk:"name"`
-	FullName types.String `tfsdk:"full_name"`
 }
 
 type securityAndAnalysisModel struct {
@@ -376,10 +381,17 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 					},
 				},
 			},
-			"organization_name": schema.StringAttribute{
-				Description:         "The name of the organization this repository is a part of.",
-				MarkdownDescription: "The name of the organization this repository is a part of.",
+			"organization": schema.SingleNestedAttribute{
+				Description:         "Details of the organization the repository is a part of.",
+				MarkdownDescription: "Details of the organization the repository is a part of.",
 				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						Description:         "The name of the organization the repository is a part of.",
+						MarkdownDescription: "The name of the organization the repository is a part of.",
+						Computed:            true,
+					},
+				},
 			},
 			"permissions": schema.SingleNestedAttribute{
 				Description:         "A map of permissions for the repository.",
@@ -605,6 +617,11 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 						},
 					},
 				},
+			},
+			"team_id": schema.Int64Attribute{
+				Description:         "The ID of the team associated with the repository.",
+				MarkdownDescription: "The ID of the team associated with the repository.",
+				Computed:            true,
 			},
 			"url": schema.StringAttribute{
 				Description:         "The URL of the repository.",
@@ -856,6 +873,7 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	parent := repo.GetParent()
 	source := repo.GetSource()
 	templateRepository := repo.GetTemplateRepository()
+	organization := repo.GetOrganization()
 	securityAndAnalysis := repo.GetSecurityAndAnalysis()
 	advancedSecurity := securityAndAnalysis.GetAdvancedSecurity()
 	secretScanning := securityAndAnalysis.GetSecretScanning()
@@ -901,7 +919,8 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.TemplateRepository.Owner = types.StringValue(templateRepository.GetOwner().GetLogin())
 	model.TemplateRepository.Name = types.StringValue(templateRepository.GetName())
 	model.TemplateRepository.FullName = types.StringValue(templateRepository.GetFullName())
-	model.OrganizationName = types.StringValue(repo.GetOrganization().GetLogin())
+	model.Organization = &organizationModel{}
+	model.Organization.Name = types.StringValue(organization.GetLogin())
 	model.Permissions = &permissionsModel{}
 	model.Permissions.Admin = types.BoolValue(permissions["admin"])
 	model.Permissions.Pull = types.BoolValue(permissions["pull"])
@@ -944,6 +963,7 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.SecurityAndAnalysis.SecretScanningValidityChecks.Status = types.StringValue(secretScanningValidityChecks.GetStatus())
 	model.SecurityAndAnalysis.DependabotSecurityUpdates = &dependabotSecurityUpdatesModel{}
 	model.SecurityAndAnalysis.DependabotSecurityUpdates.Status = types.StringValue(dependabotSecurityUpdates.GetStatus())
+	model.TeamID = types.Int64Value(repo.GetTeamID())
 	model.URL = types.StringValue(repo.GetURL())
 	model.ArchiveURL = types.StringValue(repo.GetArchiveURL())
 	model.AssigneesURL = types.StringValue(repo.GetAssigneesURL())

@@ -253,6 +253,11 @@ output "github_repository_example_security_and_analysis_dependabot_security_upda
   value       = data.github_repository.example.security_and_analysis.dependabot_security_updates.status
 }
 
+output "github_repository_example_team_id" {
+  description = "The ID of the team associated with the repository."
+  value       = data.github_repository.example.team_id
+}
+
 output "github_repository_example_url" {
   description = "The URL of the repository."
   value       = data.github_repository.example.url
