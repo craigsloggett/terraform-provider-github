@@ -18,55 +18,126 @@ type GitHubRepository struct {
 }
 
 type GitHubRepositoryModel struct {
-	Owner                     types.String      `tfsdk:"owner"`
-	Repo                      types.String      `tfsdk:"repo"`
-	Id                        types.Int64       `tfsdk:"id"`
-	NodeID                    types.String      `tfsdk:"node_id"`
-	Name                      types.String      `tfsdk:"name"`
-	FullName                  types.String      `tfsdk:"full_name"`
-	Description               types.String      `tfsdk:"description"`
-	Homepage                  types.String      `tfsdk:"homepage"`
-	DefaultBranch             types.String      `tfsdk:"default_branch"`
-	MasterBranch              types.String      `tfsdk:"master_branch"`
-	CreatedAt                 timetypes.RFC3339 `tfsdk:"created_at"`
-	PushedAt                  timetypes.RFC3339 `tfsdk:"pushed_at"`
-	UpdatedAt                 timetypes.RFC3339 `tfsdk:"updated_at"`
-	HTMLURL                   types.String      `tfsdk:"html_url"`
-	CloneURL                  types.String      `tfsdk:"clone_url"`
-	GitURL                    types.String      `tfsdk:"git_url"`
-	MirrorURL                 types.String      `tfsdk:"mirror_url"`
-	SSHURL                    types.String      `tfsdk:"ssh_url"`
-	SVNURL                    types.String      `tfsdk:"svn_url"`
-	Language                  types.String      `tfsdk:"language"`
-	Fork                      types.Bool        `tfsdk:"fork"`
-	ForksCount                types.Int64       `tfsdk:"forks_count"`
-	NetworkCount              types.Int64       `tfsdk:"network_count"`
-	OpenIssuesCount           types.Int64       `tfsdk:"open_issues_count"`
-	StargazersCount           types.Int64       `tfsdk:"stargazers_count"`
-	SubscribersCount          types.Int64       `tfsdk:"subscribers_count"`
-	Size                      types.Int64       `tfsdk:"size"`
-	AutoInit                  types.Bool        `tfsdk:"auto_init"`
-	Parent                    types.String      `tfsdk:"parent"`
-	Source                    types.String      `tfsdk:"source"`
-	TemplateRepository        types.String      `tfsdk:"template_repository"`
-	Organization              types.String      `tfsdk:"organization"`
-	Permissions               *permissionsModel `tfsdk:"permissions"`
-	AllowRebaseMerge          types.Bool        `tfsdk:"allow_rebase_merge"`
-	AllowUpdateBranch         types.Bool        `tfsdk:"allow_update_branch"`
-	AllowSquashMerge          types.Bool        `tfsdk:"allow_squash_merge"`
-	AllowMergeCommit          types.Bool        `tfsdk:"allow_merge_commit"`
-	AllowAutoMerge            types.Bool        `tfsdk:"allow_auto_merge"`
-	AllowForking              types.Bool        `tfsdk:"allow_forking"`
-	WebCommitSignoffRequired  types.Bool        `tfsdk:"web_commit_signoff_required"`
-	DeleteBranchOnMerge       types.Bool        `tfsdk:"delete_branch_on_merge"`
-	UseSquashPRTitleAsDefault types.Bool        `tfsdk:"use_squash_pr_title_as_default"`
-	SquashMergeCommitTitle    types.String      `tfsdk:"squash_merge_commit_title"`
-	SquashMergeCommitMessage  types.String      `tfsdk:"squash_merge_commit_message"`
-	MergeCommitTitle          types.String      `tfsdk:"merge_commit_title"`
-	MergeCommitMessage        types.String      `tfsdk:"merge_commit_message"`
-	Topics                    types.List        `tfsdk:"topics"`
-	Archived                  types.Bool        `tfsdk:"archived"`
-	Disabled                  types.Bool        `tfsdk:"disabled"`
+	// Arguments
+	Owner types.String `tfsdk:"owner"`
+	Repo  types.String `tfsdk:"repo"`
+
+	// Attributes
+	ID     types.Int64  `tfsdk:"id"`
+	NodeID types.String `tfsdk:"node_id"`
+	//Owner
+	Name        types.String `tfsdk:"name"`
+	FullName    types.String `tfsdk:"full_name"`
+	Description types.String `tfsdk:"description"`
+	Homepage    types.String `tfsdk:"homepage"`
+	//CodeOfConduct
+	DefaultBranch   types.String      `tfsdk:"default_branch"`
+	MasterBranch    types.String      `tfsdk:"master_branch"`
+	CreatedAt       timetypes.RFC3339 `tfsdk:"created_at"`
+	PushedAt        timetypes.RFC3339 `tfsdk:"pushed_at"`
+	UpdatedAt       timetypes.RFC3339 `tfsdk:"updated_at"`
+	HTMLURL         types.String      `tfsdk:"html_url"`
+	CloneURL        types.String      `tfsdk:"clone_url"`
+	GitURL          types.String      `tfsdk:"git_url"`
+	MirrorURL       types.String      `tfsdk:"mirror_url"`
+	SSHURL          types.String      `tfsdk:"ssh_url"`
+	SVNURL          types.String      `tfsdk:"svn_url"`
+	Language        types.String      `tfsdk:"language"`
+	Fork            types.Bool        `tfsdk:"fork"`
+	ForksCount      types.Int64       `tfsdk:"forks_count"`
+	NetworkCount    types.Int64       `tfsdk:"network_count"`
+	OpenIssuesCount types.Int64       `tfsdk:"open_issues_count"`
+	//OpenIssues // Deprecated
+	StargazersCount  types.Int64 `tfsdk:"stargazers_count"`
+	SubscribersCount types.Int64 `tfsdk:"subscribers_count"`
+	//WatchersCount // Deprecated
+	//Watchers // Deprecated
+	Size                       types.Int64       `tfsdk:"size"`
+	AutoInit                   types.Bool        `tfsdk:"auto_init"`
+	ParentRepositoryFullName   types.String      `tfsdk:"parent_repository_full_name"`
+	SourceRepositoryFullName   types.String      `tfsdk:"source_repository_full_name"`
+	TemplateRepositoryFullName types.String      `tfsdk:"template_repository_full_name"`
+	OrganizationName           types.String      `tfsdk:"organization_name"`
+	Permissions                *permissionsModel `tfsdk:"permissions"`
+	AllowRebaseMerge           types.Bool        `tfsdk:"allow_rebase_merge"`
+	AllowUpdateBranch          types.Bool        `tfsdk:"allow_update_branch"`
+	AllowSquashMerge           types.Bool        `tfsdk:"allow_squash_merge"`
+	AllowMergeCommit           types.Bool        `tfsdk:"allow_merge_commit"`
+	AllowAutoMerge             types.Bool        `tfsdk:"allow_auto_merge"`
+	AllowForking               types.Bool        `tfsdk:"allow_forking"`
+	WebCommitSignoffRequired   types.Bool        `tfsdk:"web_commit_signoff_required"`
+	DeleteBranchOnMerge        types.Bool        `tfsdk:"delete_branch_on_merge"`
+	//UseSquashPRTitleAsDefault // Deprecated
+	SquashMergeCommitTitle   types.String `tfsdk:"squash_merge_commit_title"`
+	SquashMergeCommitMessage types.String `tfsdk:"squash_merge_commit_message"`
+	MergeCommitTitle         types.String `tfsdk:"merge_commit_title"`
+	MergeCommitMessage       types.String `tfsdk:"merge_commit_message"`
+	Topics                   types.List   `tfsdk:"topics"`
+	//CustomProperties         *customPropertiesModel `tfsdk:"custom_properties"` // Future
+	Archived types.Bool `tfsdk:"archived"`
+	Disabled types.Bool `tfsdk:"disabled"`
+
+	// Additional Fields
+	Private           types.Bool   `tfsdk:"private"`
+	HasIssues         types.Bool   `tfsdk:"has_issues"`
+	HasWiki           types.Bool   `tfsdk:"has_wiki"`
+	HasPages          types.Bool   `tfsdk:"has_pages"`
+	HasProjects       types.Bool   `tfsdk:"has_projects"`
+	HasDownloads      types.Bool   `tfsdk:"has_downloads"`
+	HasDiscussions    types.Bool   `tfsdk:"has_discussions"` // Only for personal repositories.
+	IsTemplate        types.Bool   `tfsdk:"is_template"`
+	LicenseTemplate   types.String `tfsdk:"license_template"`
+	GitignoreTemplate types.String `tfsdk:"git_ignore_template"`
+
+	//TeamId // Not relevant
+
+	// Advanced Security and Secret Scanning
+	//SecurityAndAnalysis *securityAndAnalysisModel `tfsdk:"security_and_analysis"` // Future
+
+	// API URLs
+	URL              types.String `tfsdk:"url"`
+	ArchiveURL       types.String `tfsdk:"archive_url"`
+	AssigneesURL     types.String `tfsdk:"assignees_url"`
+	BlobsURL         types.String `tfsdk:"blobs_url"`
+	BranchesURL      types.String `tfsdk:"branches_url"`
+	CollaboratorsURL types.String `tfsdk:"collaborators_url"`
+	CommentsURL      types.String `tfsdk:"comments_url"`
+	CommitsURL       types.String `tfsdk:"commits_url"`
+	CompareURL       types.String `tfsdk:"compare_url"`
+	ContentsURL      types.String `tfsdk:"contents_url"`
+	ContributorsURL  types.String `tfsdk:"contributors_url"`
+	DeploymentsURL   types.String `tfsdk:"deployments_url"`
+	DownloadsURL     types.String `tfsdk:"downloads_url"`
+	EventsURL        types.String `tfsdk:"events_url"`
+	ForksURL         types.String `tfsdk:"forks_url"`
+	GitCommitsURL    types.String `tfsdk:"git_commits_url"`
+	GitRefsURL       types.String `tfsdk:"git_refs_url"`
+	GitTagsURL       types.String `tfsdk:"git_tags_url"`
+	HooksURL         types.String `tfsdk:"hooks_url"`
+	IssueCommentURL  types.String `tfsdk:"issue_comment_url"`
+	IssueEventsURL   types.String `tfsdk:"issue_events_url"`
+	IssuesURL        types.String `tfsdk:"issues_url"`
+	KeysURL          types.String `tfsdk:"keys_url"`
+	LabelsURL        types.String `tfsdk:"labels_url"`
+	LanguagesURL     types.String `tfsdk:"languages_url"`
+	MergesURL        types.String `tfsdk:"merges_url"`
+	MilestonesURL    types.String `tfsdk:"milestones_url"`
+	NotificationsURL types.String `tfsdk:"notifications_url"`
+	PullsURL         types.String `tfsdk:"pulls_url"`
+	ReleasesURL      types.String `tfsdk:"releases_url"`
+	StargazersURL    types.String `tfsdk:"stargazers_url"`
+	StatusesURL      types.String `tfsdk:"statuses_url"`
+	SubscribersURL   types.String `tfsdk:"subscribers_url"`
+	SubscriptionURL  types.String `tfsdk:"subscription_url"`
+	TagsURL          types.String `tfsdk:"tags_url"`
+	TreesURL         types.String `tfsdk:"trees_url"`
+	TeamsURL         types.String `tfsdk:"teams_url"`
+
+	//TextMatches // Not relevant
+
+	Visibility types.String `tfsdk:"visibility"`
+
+	//RoleName // Not relevant
 }
 
 type permissionsModel struct {
