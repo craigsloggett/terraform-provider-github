@@ -183,9 +183,14 @@ output "github_repository_example_template_repository_full_name" {
   value       = data.github_repository.example.template_repository.full_name
 }
 
+output "github_repository_example_organization" {
+  description = "Details of the organization the repository is a part of."
+  value       = data.github_repository.example.organization
+}
+
 output "github_repository_example_organization_name" {
-  description = "The name of the organization this repository is a part of."
-  value       = data.github_repository.example.organization_name
+  description = "The name of the organization the repository is a part of."
+  value       = data.github_repository.example.organization.name
 }
 
 output "github_repository_example_permissions" {
