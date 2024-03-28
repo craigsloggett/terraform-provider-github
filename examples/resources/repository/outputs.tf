@@ -1,3 +1,18 @@
+output "github_repository_example_updated_at" {
+  description = "GitHub ID for the repository."
+  value       = github_repository.example.updated_at
+}
+
+output "github_repository_example_created_at" {
+  description = "GitHub ID for the repository."
+  value       = github_repository.example.created_at
+}
+
+output "github_repository_example_pushed_at" {
+  description = "GitHub ID for the repository."
+  value       = github_repository.example.pushed_at
+}
+
 #output "github_repository_example_id" {
 #  description = "GitHub ID for the repository."
 #  value       = github_repository.example.id
