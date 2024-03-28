@@ -7,10 +7,9 @@ resource "github_repository" "example" {
   has_projects                = true
   has_wiki                    = true
   has_discussions             = true
-  has_downloads               = true
-  is_template                 = true
+  team_id                     = 1234
   auto_init                   = true
-  git_ignore_template         = "Terraform"
+  gitignore_template          = "Terraform"
   license_template            = "mpl-2.0"
   allow_squash_merge          = true
   allow_merge_commit          = true
@@ -21,4 +20,6 @@ resource "github_repository" "example" {
   squash_merge_commit_message = "COMMIT_MESSAGES"
   merge_commit_title          = "PR_TITLE"
   merge_commit_message        = "PR_BODY"
+  has_downloads               = true
+  is_template                 = true
 }
