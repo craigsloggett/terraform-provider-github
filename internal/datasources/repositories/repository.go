@@ -850,6 +850,7 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
+	// Read Terraform configuration data into the model.
 	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 
 	if resp.Diagnostics.HasError() {
@@ -1003,5 +1004,6 @@ func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest,
 	model.TeamsURL = types.StringValue(repo.GetTeamsURL())
 	model.Visibility = types.StringValue(repo.GetVisibility())
 
-	resp.State.Set(ctx, &model)
+	// Save updated data into Terraform state.
+	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

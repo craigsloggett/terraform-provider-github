@@ -4,7 +4,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/craigsloggett/terraform-provider-github/internal/datasources/repositories"
+	dsRepositories "github.com/craigsloggett/terraform-provider-github/internal/datasources/repositories"
+	rRepositories "github.com/craigsloggett/terraform-provider-github/internal/resources/repositories"
+
 	"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -68,14 +70,17 @@ func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	}
 
 	resp.DataSourceData = github.NewClient(nil).WithAuthToken(token)
+	resp.ResourceData = github.NewClient(nil).WithAuthToken(token)
 }
 
 func (p *GitHubProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		repositories.NewGitHubRepository,
+		dsRepositories.NewGitHubRepository,
 	}
 }
 
 func (p *GitHubProvider) Resources(_ context.Context) []func() resource.Resource {
-	return nil
+	return []func() resource.Resource{
+		rRepositories.NewGitHubRepository,
+	}
 }
