@@ -1,15 +1,25 @@
 ---
 layout: ""
-page_title: "Template Provider"
+page_title: "GitHub Provider"
 description: |-
-  The Template provider provides resources to interact with the example API.
+  The GitHub provider provides resources to interact with the GitHub API.
 ---
 
-# Template Provider
+# GitHub Provider
 
-The Template provider is used to interact with resources supported by the 
-example API. The provider needs to be configured with the proper credentials
+The GitHub provider is used to interact with resources supported by
+GitHub. The provider needs to be configured with the proper credentials
 before it can be used.
+
+## Authentication
+
+The GitHub provider currently only supports the use of a personal access token
+to authenticate with the GitHub API.
+
+### Personal Access Token
+
+To authenticate using a fine-grained personal access token, ensure that the
+`token` argument or the `GITHUB_TOKEN` environment variable is set.
 
 {{ tffile "examples/provider/provider.tf" }}
 

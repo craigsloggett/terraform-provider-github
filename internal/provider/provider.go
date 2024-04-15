@@ -2,8 +2,15 @@ package provider
 
 import (
 	"context"
-	"net/http"
+	"fmt"
+	"os"
 
+	"github.com/craigsloggett/terraform-provider-github/internal/common"
+	dsRepositories "github.com/craigsloggett/terraform-provider-github/internal/data-sources/repositories"
+	fRepositories "github.com/craigsloggett/terraform-provider-github/internal/functions/repositories"
+	rRepositories "github.com/craigsloggett/terraform-provider-github/internal/resources/repositories"
+
+	"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -12,79 +19,113 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure ScaffoldingProvider satisfies various provider interfaces.
-var _ provider.Provider = &ScaffoldingProvider{}
-var _ provider.ProviderWithFunctions = &ScaffoldingProvider{}
+var _ provider.Provider = &GitHubProvider{}
 
-// ScaffoldingProvider defines the provider implementation.
-type ScaffoldingProvider struct {
-	// version is set to the provider version on release, "dev" when the
-	// provider is built and ran locally, and "test" when running acceptance
-	// testing.
-	version string
+type GitHubProvider struct{}
+
+type GitHubProviderModel struct {
+	Owner types.String `tfsdk:"owner"`
+	Token types.String `tfsdk:"token"`
 }
 
-// ScaffoldingProviderModel describes the provider data model.
-type ScaffoldingProviderModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
+func NewGitHubProvider() func() provider.Provider {
+	return func() provider.Provider {
+		return &GitHubProvider{}
+	}
 }
 
-func (p *ScaffoldingProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "template"
-	resp.Version = p.version
+func (p *GitHubProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "github"
 }
 
-func (p *ScaffoldingProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *GitHubProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Example provider attribute",
+			"owner": schema.StringAttribute{
+				MarkdownDescription: "The target GitHub organization or individual user account to manage. Alternatively, can be configured using the `GITHUB_OWNER` environment variable.",
+				Optional:            true,
+			},
+			"token": schema.StringAttribute{
+				MarkdownDescription: "The GitHub fine-grained personal access token used to authenticate with the API. Alternatively, can be configured using the `GITHUB_TOKEN` environment variable.",
 				Optional:            true,
 			},
 		},
 	}
 }
 
-func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var data ScaffoldingProviderModel
+func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	var model GitHubProviderModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	owner := os.Getenv("GITHUB_OWNER")
+	token := os.Getenv("GITHUB_TOKEN")
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Configuration values are now available.
-	// if data.Endpoint.IsNull() { /* ... */ }
-
-	// Example client configuration for data sources and resources
-	client := http.DefaultClient
-	resp.DataSourceData = client
-	resp.ResourceData = client
-}
-
-func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		NewExampleResource,
+	// Prioritize a token configured in the provider over the GITHUB_TOKEN environment variable.
+	if model.Token.ValueString() != "" {
+		token = model.Token.ValueString()
 	}
-}
 
-func (p *ScaffoldingProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		NewExampleDataSource,
+	if token == "" {
+		resp.Diagnostics.AddError(
+			"Missing Personal Access Token Configuration",
+			"While configuring the provider, a GitHub token was not found in "+
+				"the GITHUB_TOKEN environment variable or provider configuration "+
+				"block token attribute.",
+		)
 	}
-}
 
-func (p *ScaffoldingProvider) Functions(ctx context.Context) []func() function.Function {
-	return []func() function.Function{
-		NewExampleFunction,
+	client := github.NewClient(nil).WithAuthToken(token)
+
+	// Prioritize an owner configured in the provider over the GITHUB_OWNER environment variable.
+	if model.Owner.ValueString() != "" {
+		owner = model.Owner.ValueString()
 	}
-}
 
-func New(version string) func() provider.Provider {
-	return func() provider.Provider {
-		return &ScaffoldingProvider{
-			version: version,
+	// If an owner has not been configured, default to the individual user account owning the token.
+	if owner == "" {
+
+		user, _, err := client.Users.Get(ctx, "")
+
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Communicating with the GitHub API",
+				fmt.Sprintf("Unable to get user, got error: %s", err),
+			)
+			return
 		}
+
+		owner = user.GetLogin()
+	}
+
+	config := &common.ClientConfiguration{
+		Client: client,
+		Owner:  owner,
+	}
+
+	resp.DataSourceData = config
+	resp.ResourceData = config
+}
+
+func (p *GitHubProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
+		dsRepositories.NewGitHubRepository,
+	}
+}
+
+func (p *GitHubProvider) Resources(_ context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		rRepositories.NewGitHubRepository,
+	}
+}
+
+func (p *GitHubProvider) Functions(ctx context.Context) []func() function.Function {
+	return []func() function.Function{
+		fRepositories.NewGetRepositoryName,
+		fRepositories.NewGetRepositoryOwner,
 	}
 }
