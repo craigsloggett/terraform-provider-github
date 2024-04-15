@@ -1,0 +1,24 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Summary | trimspace }}
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{codefile "terraform" .ExampleFile}}
+{{- end }}
+
+## Signature
+
+{{ .FunctionSignatureMarkdown | trimspace }}
+
+## Arguments
+
+{{ .FunctionArgumentsMarkdown | trimspace }}
