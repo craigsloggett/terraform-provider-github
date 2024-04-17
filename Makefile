@@ -26,7 +26,7 @@ all: format lint test build install
 tools: $(BIN)/go $(BIN)/golangci-lint
 
 # Setup Go
-go_version      := 1.22.1
+go_version      := 1.22.2
 go_package_name := go$(go_version).$(os)-$(arch)
 go_package_url  := https://go.dev/dl/$(go_package_name).tar.gz
 go_install_path := $(BIN)/go-$(go_version)-$(os)-$(arch)
@@ -41,7 +41,7 @@ $(BIN)/go:
 	@ln -s $(go_install_path)/bin/go $(BIN)/go
 
 # Setup golangci
-golangci_version      := 1.57.1
+golangci_version      := 1.57.2
 golangci_package_name := golangci-lint-$(golangci_version)-$(os)-$(arch)
 golangci_package_url  := https://github.com/golangci/golangci-lint/releases/download/v$(golangci_version)/$(golangci_package_name).tar.gz
 golangci_install_path := $(BIN)/$(golangci_package_name)
