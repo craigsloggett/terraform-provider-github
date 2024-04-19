@@ -19,6 +19,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       - name: Generate Tag
         uses: cycjimmy/semantic-release-action@cb425203a562475bca039ba4dbf90c7f9ac790f4 # v4.1.0
+        id: semantic
         with:
           semantic_version: 23.0.5
           extra_plugins: |
@@ -26,9 +27,12 @@ jobs:
             conventional-changelog-conventionalcommits@7.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
   goreleaser:
     name: GoReleaser
     needs: tag
+    if: needs.tag.outputs.new_release_published == 'true'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
