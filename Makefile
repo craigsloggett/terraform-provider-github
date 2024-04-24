@@ -20,7 +20,7 @@ ifeq ($(shell uname -m),arm64)
 endif
 
 .PHONY: all
-all: format lint test build install
+all: format lint build install test
 
 .PHONY: tools
 tools: $(BIN)/go $(BIN)/golangci-lint
