@@ -1,10 +1,8 @@
-package repositories
+package provider
 
 import (
 	"context"
 	"fmt"
-
-	"github.com/craigsloggett/terraform-provider-github/internal/common"
 
 	"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -16,15 +14,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var _ resource.Resource = &GitHubRepository{}
-var _ resource.ResourceWithImportState = &GitHubRepository{}
+var _ resource.Resource = &GitHubRepositoryResource{}
+var _ resource.ResourceWithImportState = &GitHubRepositoryResource{}
 
-type GitHubRepository struct {
+type GitHubRepositoryResource struct {
 	client *github.Client
 	owner  string
 }
 
-type GitHubRepositoryModel struct {
+func NewGitHubRepositoryResource() resource.Resource {
+	return &GitHubRepositoryResource{}
+}
+
+type GitHubRepositoryResourceModel struct {
 	// Arguments
 	Name                     types.String `tfsdk:"name"`
 	Description              types.String `tfsdk:"description"`
@@ -55,15 +57,11 @@ type GitHubRepositoryModel struct {
 	NodeID types.String `tfsdk:"node_id"`
 }
 
-func NewGitHubRepository() resource.Resource {
-	return &GitHubRepository{}
-}
-
-func (r *GitHubRepository) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *GitHubRepositoryResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repository"
 }
 
-func (r *GitHubRepository) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			// Arguments
@@ -205,12 +203,12 @@ func (r *GitHubRepository) Schema(_ context.Context, _ resource.SchemaRequest, r
 	}
 }
 
-func (r *GitHubRepository) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *GitHubRepositoryResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 
-	config, ok := req.ProviderData.(*common.ClientConfiguration)
+	config, ok := req.ProviderData.(*GitHubClientConfiguration)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -224,8 +222,8 @@ func (r *GitHubRepository) Configure(_ context.Context, req resource.ConfigureRe
 	r.owner = config.Owner
 }
 
-func (r *GitHubRepository) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var model GitHubRepositoryModel
+func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var model GitHubRepositoryResourceModel
 
 	// Read Terraform prior state data into the model.
 	resp.Diagnostics.Append(req.State.Get(ctx, &model)...)
@@ -238,8 +236,8 @@ func (r *GitHubRepository) Read(ctx context.Context, req resource.ReadRequest, r
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
-func (r *GitHubRepository) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var model GitHubRepositoryModel
+func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var model GitHubRepositoryResourceModel
 
 	client := r.client
 
@@ -293,8 +291,8 @@ func (r *GitHubRepository) Create(ctx context.Context, req resource.CreateReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
-func (r *GitHubRepository) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var model GitHubRepositoryModel
+func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var model GitHubRepositoryResourceModel
 
 	client := r.client
 	owner := r.owner
@@ -349,8 +347,8 @@ func (r *GitHubRepository) Update(ctx context.Context, req resource.UpdateReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
-func (r *GitHubRepository) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var model GitHubRepositoryModel
+func (r *GitHubRepositoryResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var model GitHubRepositoryResourceModel
 
 	client := r.client
 	owner := r.owner
@@ -376,6 +374,6 @@ func (r *GitHubRepository) Delete(ctx context.Context, req resource.DeleteReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
-func (r *GitHubRepository) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *GitHubRepositoryResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

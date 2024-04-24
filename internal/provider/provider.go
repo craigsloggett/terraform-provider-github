@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/craigsloggett/terraform-provider-github/internal/common"
-	dsRepositories "github.com/craigsloggett/terraform-provider-github/internal/data-sources/repositories"
-	fRepositories "github.com/craigsloggett/terraform-provider-github/internal/functions/repositories"
-	rRepositories "github.com/craigsloggett/terraform-provider-github/internal/resources/repositories"
+	"github.com/craigsloggett/terraform-provider-github/internal/functions"
 
 	"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -26,6 +23,11 @@ type GitHubProvider struct{}
 type GitHubProviderModel struct {
 	Owner types.String `tfsdk:"owner"`
 	Token types.String `tfsdk:"token"`
+}
+
+type GitHubClientConfiguration struct {
+	Client *github.Client
+	Owner  string
 }
 
 func NewGitHubProvider() func() provider.Provider {
@@ -102,7 +104,7 @@ func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRe
 		owner = user.GetLogin()
 	}
 
-	config := &common.ClientConfiguration{
+	config := &GitHubClientConfiguration{
 		Client: client,
 		Owner:  owner,
 	}
@@ -113,19 +115,19 @@ func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRe
 
 func (p *GitHubProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		dsRepositories.NewGitHubRepository,
+		NewGitHubRepositoryDataSource,
 	}
 }
 
 func (p *GitHubProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		rRepositories.NewGitHubRepository,
+		NewGitHubRepositoryResource,
 	}
 }
 
 func (p *GitHubProvider) Functions(ctx context.Context) []func() function.Function {
 	return []func() function.Function{
-		fRepositories.NewGetRepositoryName,
-		fRepositories.NewGetRepositoryOwner,
+		functions.NewGetRepositoryName,
+		functions.NewGetRepositoryOwner,
 	}
 }
