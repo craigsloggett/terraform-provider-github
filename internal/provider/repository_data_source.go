@@ -1,10 +1,8 @@
-package repositories
+package provider
 
 import (
 	"context"
 	"fmt"
-
-	"github.com/craigsloggett/terraform-provider-github/internal/common"
 
 	"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
@@ -13,13 +11,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var _ datasource.DataSource = &GitHubRepository{}
+var _ datasource.DataSource = &GitHubRepositoryDataSource{}
 
-type GitHubRepository struct {
+type GitHubRepositoryDataSource struct {
 	client *github.Client
 }
 
-type GitHubRepositoryModel struct {
+func NewGitHubRepositoryDataSource() datasource.DataSource {
+	return &GitHubRepositoryDataSource{}
+}
+
+type GitHubRepositoryDataSourceModel struct {
 	// Arguments
 	Owner types.String `tfsdk:"owner"`
 	Name  types.String `tfsdk:"name"`
@@ -168,15 +170,11 @@ type dependabotSecurityUpdatesModel struct {
 	Status types.String `tfsdk:"status"`
 }
 
-func NewGitHubRepository() datasource.DataSource {
-	return &GitHubRepository{}
-}
-
-func (d *GitHubRepository) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *GitHubRepositoryDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repository"
 }
 
-func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *GitHubRepositoryDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"owner": schema.StringAttribute{
@@ -821,12 +819,12 @@ func (d *GitHubRepository) Schema(_ context.Context, _ datasource.SchemaRequest,
 	}
 }
 
-func (d *GitHubRepository) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *GitHubRepositoryDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 
-	config, ok := req.ProviderData.(*common.ClientConfiguration)
+	config, ok := req.ProviderData.(*GitHubClientConfiguration)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -839,8 +837,8 @@ func (d *GitHubRepository) Configure(_ context.Context, req datasource.Configure
 	d.client = config.Client
 }
 
-func (d *GitHubRepository) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var model GitHubRepositoryModel
+func (d *GitHubRepositoryDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var model GitHubRepositoryDataSourceModel
 
 	client := d.client
 
