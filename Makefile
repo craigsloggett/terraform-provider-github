@@ -20,10 +20,10 @@ ifeq ($(shell uname -m),arm64)
 endif
 
 .PHONY: all
-all: format lint build install test
+all: format lint build install docs test
 
 .PHONY: tools
-tools: $(BIN)/go $(BIN)/golangci-lint
+tools: $(BIN)/go $(BIN)/golangci-lint $(GOPATH)/bin/tfplugindocs
 
 # Setup Go
 go_version      := 1.22.2
@@ -53,6 +53,12 @@ $(BIN)/golangci-lint:
 	@tar -C $(BIN) -xzf $(BIN)/$(golangci_package_name).tar.gz && rm $(BIN)/$(golangci_package_name).tar.gz
 	@ln -s $(golangci_install_path)/golangci-lint $(BIN)/golangci-lint
 
+# Setup tfplugindocs
+tfplugindocs_version := 0.19.1
+
+$(GOPATH)/bin/tfplugindocs: $(BIN)/go
+	@go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v$(tfplugindocs_version)
+
 .PHONY: update
 update: $(BIN)/go
 	@echo "Updating dependencies..."
@@ -70,22 +76,28 @@ $(BIN)/$(PROVIDER_NAME): update
 install: $(CACHE)/bin/$(PROVIDER_NAME)
 
 $(CACHE)/bin/$(PROVIDER_NAME): update
-	@echo "Installing..."
+	@echo "Installing provider..."
 	@go install ./...
 
 .PHONY: format
-format: $(BIN)/go
+format: tools
 	@echo "Formatting..."
 	@go fmt ./...
 
 .PHONY: lint
-lint: tools
+lint: tools update
 	@echo "Linting..."
 	@golangci-lint run ./...
 
 .PHONY: test
-test: $(BIN)/go
+test: tools
 	@echo "Testing..."
+	@cd .terraform && terraform plan
+
+.PHONY: docs
+docs: tools update install
+	@echo "Generating Docs..."
+	@$(GOPATH)/bin/./tfplugindocs generate -rendered-provider-name "GitHub"
 
 .PHONY: clean
 clean:
