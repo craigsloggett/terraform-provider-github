@@ -89,15 +89,15 @@ lint: tools update
 	@echo "Linting..."
 	@golangci-lint run ./...
 
-.PHONY: test
-test: tools
-	@echo "Testing..."
-	@cd internal/provider && TF_ACC=1 go test -count=1 -v
-
 .PHONY: docs
 docs: tools update install
 	@echo "Generating Docs..."
 	@$(GOPATH)/bin/./tfplugindocs generate -rendered-provider-name "GitHub"
+
+.PHONY: test
+test: tools
+	@echo "Testing..."
+	@cd internal/provider && TF_ACC=1 go test -count=1 -v
 
 .PHONY: clean
 clean:
