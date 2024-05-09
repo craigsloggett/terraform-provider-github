@@ -92,7 +92,7 @@ lint: tools update
 .PHONY: test
 test: tools
 	@echo "Testing..."
-	@cd .terraform && terraform plan
+	@cd internal/provider && TF_ACC=1 go test -count=1 -v
 
 .PHONY: docs
 docs: tools update install
