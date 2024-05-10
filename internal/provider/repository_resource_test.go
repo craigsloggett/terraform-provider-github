@@ -18,6 +18,11 @@ func TestAccRepositoryResource(t *testing.T) {
 					resource.TestCheckResourceAttr("github_repository.test", "name", "testing-repository"),
 				),
 			},
+			{
+				ResourceName:      "github_repository.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
