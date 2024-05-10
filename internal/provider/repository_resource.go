@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/google/go-github/v60/github"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -375,5 +376,15 @@ func (r *GitHubRepositoryResource) Delete(ctx context.Context, req resource.Dele
 }
 
 func (r *GitHubRepositoryResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	id, err := strconv.ParseInt(req.ID, 10, 64)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error importing item",
+			"Could not import the repository, the ID should be an integer: "+err.Error(),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
 }
