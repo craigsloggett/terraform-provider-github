@@ -39,7 +39,6 @@ type GitHubRepositoryResourceModel struct {
 	HasProjects              types.Bool   `tfsdk:"has_projects"`
 	HasWiki                  types.Bool   `tfsdk:"has_wiki"`
 	HasDiscussions           types.Bool   `tfsdk:"has_discussions"`
-	TeamID                   types.Int64  `tfsdk:"team_id"`
 	AutoInit                 types.Bool   `tfsdk:"auto_init"`
 	GitignoreTemplate        types.String `tfsdk:"gitignore_template"`
 	LicenseTemplate          types.String `tfsdk:"license_template"`
@@ -77,11 +76,19 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Description:         "The description of the repository.",
 				MarkdownDescription: "The description of the repository.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"homepage": schema.StringAttribute{
 				Description:         "The homepage of the repository.",
 				MarkdownDescription: "The homepage of the repository.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"private": schema.BoolAttribute{
 				Description:         "Indicates if the repository is private.",
@@ -128,11 +135,6 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"team_id": schema.Int64Attribute{
-				Description:         "The ID of the team associated with the repository.",
-				MarkdownDescription: "The ID of the team associated with the repository.",
-				Optional:            true,
-			},
 			"auto_init": schema.BoolAttribute{
 				Description:         "Indicates if the repository is initialized with a README.",
 				MarkdownDescription: "Indicates if the repository is initialized with a README.",
@@ -153,7 +155,9 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				MarkdownDescription: "Indicates if squash merging is allowed in the repository.",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"allow_merge_commit": schema.BoolAttribute{
 				Description:         "Indicates if merge commits are allowed in the repository.",
@@ -167,7 +171,9 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				MarkdownDescription: "Indicates if rebase merging is allowed in the repository.",
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"allow_auto_merge": schema.BoolAttribute{
 				Description:         "Indicates if auto-merging is allowed in the repository.",
@@ -227,11 +233,19 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Description:         "Indicates if the repository has downloads enabled.",
 				MarkdownDescription: "Indicates if the repository has downloads enabled.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_template": schema.BoolAttribute{
 				Description:         "Indicates if the repository is a template repository.",
 				MarkdownDescription: "Indicates if the repository is a template repository.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			// Attributes
 			"id": schema.Int64Attribute{
@@ -298,6 +312,8 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	model.Name = types.StringValue(repo.GetName())
+	model.Description = types.StringValue(repo.GetDescription())
+	model.Homepage = types.StringValue(repo.GetHomepage())
 	model.Private = types.BoolValue(repo.GetPrivate())
 	model.HasIssues = types.BoolValue(repo.GetHasIssues())
 	model.HasProjects = types.BoolValue(repo.GetHasProjects())
@@ -312,6 +328,8 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
 	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	model.HasDownloads = types.BoolValue(repo.GetHasDownloads())
+	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
 
 	model.ID = types.Int64Value(repo.GetID())
 	model.NodeID = types.StringValue(repo.GetNodeID())
@@ -341,7 +359,6 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		HasProjects:              github.Bool(types.Bool.ValueBool(model.HasProjects)),
 		HasWiki:                  github.Bool(types.Bool.ValueBool(model.HasWiki)),
 		HasDiscussions:           github.Bool(types.Bool.ValueBool(model.HasDiscussions)),
-		TeamID:                   github.Int64(types.Int64.ValueInt64(model.TeamID)),
 		AutoInit:                 github.Bool(types.Bool.ValueBool(model.AutoInit)),
 		GitignoreTemplate:        github.String(types.String.ValueString(model.GitignoreTemplate)),
 		LicenseTemplate:          github.String(types.String.ValueString(model.LicenseTemplate)),
@@ -368,6 +385,9 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
+	model.Name = types.StringValue(repo.GetName())
+	model.Description = types.StringValue(repo.GetDescription())
+	model.Homepage = types.StringValue(repo.GetHomepage())
 	model.Private = types.BoolValue(repo.GetPrivate())
 	model.HasIssues = types.BoolValue(repo.GetHasIssues())
 	model.HasProjects = types.BoolValue(repo.GetHasProjects())
@@ -382,6 +402,8 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
 	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	model.HasDownloads = types.BoolValue(repo.GetHasDownloads())
+	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
 
 	model.ID = types.Int64Value(repo.GetID())
 	model.NodeID = types.StringValue(repo.GetNodeID())
@@ -412,7 +434,6 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		HasProjects:              github.Bool(types.Bool.ValueBool(model.HasProjects)),
 		HasWiki:                  github.Bool(types.Bool.ValueBool(model.HasWiki)),
 		HasDiscussions:           github.Bool(types.Bool.ValueBool(model.HasDiscussions)),
-		TeamID:                   github.Int64(types.Int64.ValueInt64(model.TeamID)),
 		AutoInit:                 github.Bool(types.Bool.ValueBool(model.AutoInit)),
 		GitignoreTemplate:        github.String(types.String.ValueString(model.GitignoreTemplate)),
 		LicenseTemplate:          github.String(types.String.ValueString(model.LicenseTemplate)),
@@ -439,6 +460,9 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
+	model.Name = types.StringValue(repo.GetName())
+	model.Description = types.StringValue(repo.GetDescription())
+	model.Homepage = types.StringValue(repo.GetHomepage())
 	model.Private = types.BoolValue(repo.GetPrivate())
 	model.HasIssues = types.BoolValue(repo.GetHasIssues())
 	model.HasProjects = types.BoolValue(repo.GetHasProjects())
@@ -453,6 +477,8 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
 	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	model.HasDownloads = types.BoolValue(repo.GetHasDownloads())
+	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
 
 	model.ID = types.Int64Value(repo.GetID())
 	model.NodeID = types.StringValue(repo.GetNodeID())
