@@ -15,7 +15,7 @@ require (
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
-	github.com/fatih/color v1.16.0 // indirect
+	github.com/fatih/color v1.17.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -57,7 +57,7 @@ require (
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240509183442-62759503f434 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240513163218-0867130af1f8 // indirect
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 )
