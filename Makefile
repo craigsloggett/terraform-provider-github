@@ -91,7 +91,7 @@ docs: tools update install
 	@$(GOPATH)/bin/./tfplugindocs generate -rendered-provider-name "GitHub" >/dev/null
 
 .PHONY: test
-test: tools
+test: install
 	@echo "Testing..."
 	@cd internal/provider && TF_ACC=1 go test -count=1 -v
 
