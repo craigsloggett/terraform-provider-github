@@ -31,7 +31,6 @@ func testAccRepositoryResourceConfig(name string) string {
 	return fmt.Sprintf(`
 resource "github_repository" "test" {
   name               = %[1]q
-  allow_merge_commit = true
 }
 `, name)
 }
