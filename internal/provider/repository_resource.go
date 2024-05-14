@@ -279,7 +279,6 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 	var model GitHubRepositoryResourceModel
 
 	client := r.client
-	owner := r.owner
 
 	// Read Terraform prior state data into the model.
 	resp.Diagnostics.Append(req.State.Get(ctx, &model)...)
@@ -288,7 +287,7 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	repo, _, err := client.Repositories.Get(ctx, owner, model.Name.ValueString())
+	repo, _, err := client.Repositories.GetByID(ctx, model.ID.ValueInt64())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -298,6 +297,7 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
+	model.Name = types.StringValue(repo.GetName())
 	model.Private = types.BoolValue(repo.GetPrivate())
 	model.HasIssues = types.BoolValue(repo.GetHasIssues())
 	model.HasProjects = types.BoolValue(repo.GetHasProjects())
