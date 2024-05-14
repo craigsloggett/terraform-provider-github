@@ -20,7 +20,7 @@ ifeq ($(shell uname -m),arm64)
 endif
 
 .PHONY: all
-all: format lint build install docs test
+all: format lint install docs test
 
 .PHONY: tools
 tools: $(BIN)/go $(BIN)/golangci-lint $(GOPATH)/bin/tfplugindocs
@@ -66,16 +66,12 @@ update: $(BIN)/go
 	@go mod tidy
 
 .PHONY: build
-build: $(BIN)/$(PROVIDER_NAME)
-
-$(BIN)/$(PROVIDER_NAME): update
+build: update
 	@echo "Building..."
-	@go build -o $(BIN)
+	@go build ./...
 
 .PHONY: install
-install: $(CACHE)/bin/$(PROVIDER_NAME)
-
-$(CACHE)/bin/$(PROVIDER_NAME): update
+install: update
 	@echo "Installing provider..."
 	@go install ./...
 
@@ -92,7 +88,7 @@ lint: tools update
 .PHONY: docs
 docs: tools update install
 	@echo "Generating Docs..."
-	@$(GOPATH)/bin/./tfplugindocs generate -rendered-provider-name "GitHub"
+	@$(GOPATH)/bin/./tfplugindocs generate -rendered-provider-name "GitHub" >/dev/null
 
 .PHONY: test
 test: tools
