@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -85,26 +87,46 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Description:         "Indicates if the repository is private.",
 				MarkdownDescription: "Indicates if the repository is private.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"has_issues": schema.BoolAttribute{
 				Description:         "Indicates if the repository has issues enabled.",
 				MarkdownDescription: "Indicates if the repository has issues enabled.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"has_projects": schema.BoolAttribute{
 				Description:         "Indicates if the repository has projects enabled.",
 				MarkdownDescription: "Indicates if the repository has projects enabled.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"has_wiki": schema.BoolAttribute{
 				Description:         "Indicates if the repository has wiki enabled.",
 				MarkdownDescription: "Indicates if the repository has wiki enabled.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"has_discussions": schema.BoolAttribute{
 				Description:         "Indicates if the repository has discussions enabled.",
 				MarkdownDescription: "Indicates if the repository has discussions enabled.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"team_id": schema.Int64Attribute{
 				Description:         "The ID of the team associated with the repository.",
@@ -130,46 +152,76 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Description:         "Indicates if squash merging is allowed in the repository.",
 				MarkdownDescription: "Indicates if squash merging is allowed in the repository.",
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 			},
 			"allow_merge_commit": schema.BoolAttribute{
 				Description:         "Indicates if merge commits are allowed in the repository.",
 				MarkdownDescription: "Indicates if merge commits are allowed in the repository.",
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 			},
 			"allow_rebase_merge": schema.BoolAttribute{
 				Description:         "Indicates if rebase merging is allowed in the repository.",
 				MarkdownDescription: "Indicates if rebase merging is allowed in the repository.",
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 			},
 			"allow_auto_merge": schema.BoolAttribute{
 				Description:         "Indicates if auto-merging is allowed in the repository.",
 				MarkdownDescription: "Indicates if auto-merging is allowed in the repository.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"delete_branch_on_merge": schema.BoolAttribute{
 				Description:         "Indicates if branches are automatically deleted when pull requests are merged.",
 				MarkdownDescription: "Indicates if branches are automatically deleted when pull requests are merged.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"squash_merge_commit_title": schema.StringAttribute{
 				Description:         "The title of squash merge commits for pull requests.",
 				MarkdownDescription: "The title of squash merge commits for pull requests.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"squash_merge_commit_message": schema.StringAttribute{
 				Description:         "The message of squash merge commits for pull requests.",
 				MarkdownDescription: "The message of squash merge commits for pull requests.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"merge_commit_title": schema.StringAttribute{
 				Description:         "The title of merge commits for pull requests.",
 				MarkdownDescription: "The title of merge commits for pull requests.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"merge_commit_message": schema.StringAttribute{
 				Description:         "The message of merge commits for pull requests.",
 				MarkdownDescription: "The message of merge commits for pull requests.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"has_downloads": schema.BoolAttribute{
 				Description:         "Indicates if the repository has downloads enabled.",
@@ -226,12 +278,43 @@ func (r *GitHubRepositoryResource) Configure(_ context.Context, req resource.Con
 func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var model GitHubRepositoryResourceModel
 
+	client := r.client
+	owner := r.owner
+
 	// Read Terraform prior state data into the model.
 	resp.Diagnostics.Append(req.State.Get(ctx, &model)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	repo, _, err := client.Repositories.Get(ctx, owner, model.Name.ValueString())
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Communicating with the GitHub API",
+			fmt.Sprintf("Unable to get repository, got error: %s", err),
+		)
+		return
+	}
+
+	model.Private = types.BoolValue(repo.GetPrivate())
+	model.HasIssues = types.BoolValue(repo.GetHasIssues())
+	model.HasProjects = types.BoolValue(repo.GetHasProjects())
+	model.HasWiki = types.BoolValue(repo.GetHasWiki())
+	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+
+	model.ID = types.Int64Value(repo.GetID())
+	model.NodeID = types.StringValue(repo.GetNodeID())
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -284,6 +367,21 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		)
 		return
 	}
+
+	model.Private = types.BoolValue(repo.GetPrivate())
+	model.HasIssues = types.BoolValue(repo.GetHasIssues())
+	model.HasProjects = types.BoolValue(repo.GetHasProjects())
+	model.HasWiki = types.BoolValue(repo.GetHasWiki())
+	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
 
 	model.ID = types.Int64Value(repo.GetID())
 	model.NodeID = types.StringValue(repo.GetNodeID())
@@ -340,6 +438,21 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		)
 		return
 	}
+
+	model.Private = types.BoolValue(repo.GetPrivate())
+	model.HasIssues = types.BoolValue(repo.GetHasIssues())
+	model.HasProjects = types.BoolValue(repo.GetHasProjects())
+	model.HasWiki = types.BoolValue(repo.GetHasWiki())
+	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
 
 	model.ID = types.Int64Value(repo.GetID())
 	model.NodeID = types.StringValue(repo.GetNodeID())
