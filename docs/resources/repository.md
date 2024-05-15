@@ -63,7 +63,7 @@ resource "github_repository" "example" {
 - `license_template` (String) The license template used by the repository.
 - `merge_commit_message` (String) The default value for a merge commit message.
 
-	Can be one of: `PR_BODY`, `PR_TITLE`, `BLANK`.
+	Must be one of:
 
 	`PR_BODY` defaults to the pull request's body.
 
@@ -72,7 +72,7 @@ resource "github_repository" "example" {
 	`BLANK` defaults to a blank commit message.
 - `merge_commit_title` (String) The default value for a merge commit title.
 
-	Can be one of: `PR_TITLE`, `MERGE_MESSAGE`.
+	Must be one of:
 
 	`PR_TITLE` defaults to the pull request's title.
 
@@ -80,7 +80,7 @@ resource "github_repository" "example" {
 - `private` (Boolean) Indicates if the repository is private.
 - `squash_merge_commit_message` (String) The default value for a squash merge commit message.
 
-	Can be one of: `PR_BODY`, `COMMIT_MESSAGES`, `BLANK`.
+	Must be one of:
 
 	`PR_BODY` defaults to the pull request's body.
 
@@ -89,7 +89,7 @@ resource "github_repository" "example" {
 	`BLANK` defaults to a blank commit message.
 - `squash_merge_commit_title` (String) The default value for a squash merge commit title.
 
-	Can be one of: `PR_TITLE`, `COMMIT_OR_PR_TITLE`.
+	Must be one of:
 
 	`PR_TITLE` defaults to the pull request's title.
 
