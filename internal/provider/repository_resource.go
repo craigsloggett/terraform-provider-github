@@ -414,12 +414,20 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 
 func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var model GitHubRepositoryResourceModel
+	var state GitHubRepositoryResourceModel
 
 	client := r.client
 	owner := r.owner
 
 	// Read Terraform plan data into the model.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &model)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Read Terraform prior state data into the model.
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -450,7 +458,7 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		IsTemplate:               github.Bool(types.Bool.ValueBool(model.IsTemplate)),
 	}
 
-	repo, _, err := client.Repositories.Edit(ctx, owner, model.Name.ValueString(), repository)
+	repo, _, err := client.Repositories.Edit(ctx, owner, state.Name.ValueString(), repository)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
