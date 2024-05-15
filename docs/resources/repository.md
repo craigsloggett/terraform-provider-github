@@ -78,8 +78,22 @@ resource "github_repository" "example" {
 
 	`MERGE_MESSAGE` defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).
 - `private` (Boolean) Indicates if the repository is private.
-- `squash_merge_commit_message` (String) The default value for a squash merge commit message. `PR_BODY` defaults to the pull request's body, `COMMIT_MESSAGES` defaults to the branch's commit messages, and `BLANK` defaults to a blank commit message. Can be one of: `PR_BODY`, `COMMIT_MESSAGES`, `BLANK`.
-- `squash_merge_commit_title` (String) The default value for a squash merge commit title. `PR_TITLE` defaults to the pull request's title, while `COMMIT_OR_PR_TITLE` defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit). Can be one of: `PR_TITLE`, `COMMIT_OR_PR_TITLE`.
+- `squash_merge_commit_message` (String) The default value for a squash merge commit message.
+
+	Can be one of: `PR_BODY`, `COMMIT_MESSAGES`, `BLANK`.
+
+	`PR_BODY` defaults to the pull request's body.
+
+	`COMMIT_MESSAGES` defaults to the branch's commit messages.
+
+	`BLANK` defaults to a blank commit message.
+- `squash_merge_commit_title` (String) The default value for a squash merge commit title.
+
+	Can be one of: `PR_TITLE`, `COMMIT_OR_PR_TITLE`.
+
+	`PR_TITLE` defaults to the pull request's title.
+
+	`COMMIT_OR_PR_TITLE` defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit).
 
 ### Read-Only
 

@@ -187,10 +187,22 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 			"squash_merge_commit_title": schema.StringAttribute{
-				Description:         "The default value for a squash merge commit title. 'PR_TITLE' defaults to the pull request's title, while 'COMMIT_OR_PR_TITLE' defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit). Can be one of: 'PR_TITLE', 'COMMIT_OR_PR_TITLE'.",
-				MarkdownDescription: "The default value for a squash merge commit title. `PR_TITLE` defaults to the pull request's title, while `COMMIT_OR_PR_TITLE` defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit). Can be one of: `PR_TITLE`, `COMMIT_OR_PR_TITLE`.",
-				Optional:            true,
-				Computed:            true,
+				Description: `The default value for a squash merge commit title.
+
+	Can be one of: 'PR_TITLE', 'COMMIT_OR_PR_TITLE'.
+
+	'PR_TITLE' defaults to the pull request's title.
+
+	'COMMIT_OR_PR_TITLE' defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit).`,
+				MarkdownDescription: `The default value for a squash merge commit title.
+
+	Can be one of: ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `COMMIT_OR_PR_TITLE` + "`" + `.
+
+	` + "`" + `PR_TITLE` + "`" + ` defaults to the pull request's title.
+
+	` + "`" + `COMMIT_OR_PR_TITLE` + "`" + ` defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit).`,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_TITLE", "COMMIT_OR_PR_TITLE"),
 				},
@@ -199,10 +211,26 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 			"squash_merge_commit_message": schema.StringAttribute{
-				Description:         "The default value for a squash merge commit message. 'PR_BODY' defaults to the pull request's body, 'COMMIT_MESSAGES' defaults to the branch's commit messages, and 'BLANK' defaults to a blank commit message. Can be one of: 'PR_BODY', 'COMMIT_MESSAGES', 'BLANK'.",
-				MarkdownDescription: "The default value for a squash merge commit message. `PR_BODY` defaults to the pull request's body, `COMMIT_MESSAGES` defaults to the branch's commit messages, and `BLANK` defaults to a blank commit message. Can be one of: `PR_BODY`, `COMMIT_MESSAGES`, `BLANK`.",
-				Optional:            true,
-				Computed:            true,
+				Description: `The default value for a squash merge commit message.
+
+	Can be one of: 'PR_BODY', 'COMMIT_MESSAGES', 'BLANK'.
+
+	'PR_BODY' defaults to the pull request's body.
+
+	'COMMIT_MESSAGES' defaults to the branch's commit messages.
+
+	'BLANK' defaults to a blank commit message.`,
+				MarkdownDescription: `The default value for a squash merge commit message.
+
+	Can be one of: ` + "`" + `PR_BODY` + "`" + `, ` + "`" + `COMMIT_MESSAGES` + "`" + `, ` + "`" + `BLANK` + "`" + `.
+
+	` + "`" + `PR_BODY` + "`" + ` defaults to the pull request's body.
+
+	` + "`" + `COMMIT_MESSAGES` + "`" + ` defaults to the branch's commit messages.
+
+	` + "`" + `BLANK` + "`" + ` defaults to a blank commit message.`,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_BODY", "COMMIT_MESSAGES", "BLANK"),
 				},
