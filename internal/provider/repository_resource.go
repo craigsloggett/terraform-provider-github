@@ -211,10 +211,22 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 			"merge_commit_title": schema.StringAttribute{
-				Description:         "The default value for a merge commit title. 'PR_TITLE' defaults to the pull request's title, while 'MERGE_MESSAGE' defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name). Can be one of: 'PR_TITLE', 'MERGE_MESSAGE'.",
-				MarkdownDescription: "The default value for a merge commit title. `PR_TITLE` defaults to the pull request's title, while `MERGE_MESSAGE` defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name). Can be one of: `PR_TITLE`, `MERGE_MESSAGE`.",
-				Optional:            true,
-				Computed:            true,
+				Description: `The default value for a merge commit title.
+    
+	Can be one of: 'PR_TITLE', 'MERGE_MESSAGE'.
+
+	'PR_TITLE' defaults to the pull request's title.
+
+	'MERGE_MESSAGE' defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).`,
+				MarkdownDescription: `The default value for a merge commit title.
+
+	Can be one of: ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `MERGE_MESSAGE` + "`" + `.
+
+	` + "`" + `PR_TITLE` + "`" + ` defaults to the pull request's title.
+
+	` + "`" + `MERGE_MESSAGE` + "`" + ` defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).`,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_TITLE", "MERGE_MESSAGE"),
 				},
