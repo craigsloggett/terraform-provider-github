@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/google/go-github/v60/github"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -185,37 +187,103 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 			"squash_merge_commit_title": schema.StringAttribute{
-				Description:         "The title of squash merge commits for pull requests.",
-				MarkdownDescription: "The title of squash merge commits for pull requests.",
-				Optional:            true,
-				Computed:            true,
+				Description: `
+					The default value for a squash merge commit title.
+
+					- 'PR_TITLE' - default to the pull request's title
+					- 'COMMIT_OR_PR_TITLE' - default to the commit's title (if only one commit) or 
+					the pull request's title (when more than one commit)
+
+					Can be one of: 'PR_TITLE', 'COMMIT_OR_PR_TITLE'`,
+				MarkdownDescription: `
+					The default value for a squash merge commit title.
+
+					- ` + "`" + `PR_TITLE` + "`" + ` - default to the pull request's title
+					- ` + "`" + `COMMIT_OR_PR_TITLE` + "`" + ` - default to the commit's title (if only one commit) or 
+					the pull request's title (when more than one commit)
+
+					Can be one of: ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `COMMIT_OR_PR_TITLE` + "`",
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("PR_TITLE", "COMMIT_OR_PR_TITLE"),
+				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"squash_merge_commit_message": schema.StringAttribute{
-				Description:         "The message of squash merge commits for pull requests.",
-				MarkdownDescription: "The message of squash merge commits for pull requests.",
-				Optional:            true,
-				Computed:            true,
+				Description: `
+					The default value for a squash merge commit message.
+
+					- 'PR_BODY' - default to the pull request's body
+					- 'COMMIT_MESSAGES' - default to the branch's commit messages
+					- 'BLANK' - default to a blank commit message
+
+					Can be one of: 'PR_BODY', 'COMMIT_MESSAGES', 'BLANK'`,
+				MarkdownDescription: `
+					The default value for a squash merge commit message.
+
+					- ` + "`" + `PR_BODY` + "`" + ` - default to the pull request's body
+					- ` + "`" + `COMMIT_MESSAGES` + "`" + ` - default to the branch's commit messages
+					- ` + "`" + `BLANK` + "`" + ` - default to a blank commit message
+
+					Can be one of: ` + "`" + `PR_BODY` + "`" + `, ` + "`" + `COMMIT_MESSAGES` + "`" + `, ` + "`" + `BLANK` + "`",
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("PR_BODY", "COMMIT_MESSAGES", "BLANK"),
+				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"merge_commit_title": schema.StringAttribute{
-				Description:         "The title of merge commits for pull requests.",
-				MarkdownDescription: "The title of merge commits for pull requests.",
-				Optional:            true,
-				Computed:            true,
+				Description: `
+					The default value for a merge commit title.
+
+					- 'PR_TITLE' - default to the pull request's title
+					- 'MERGE_MESSAGE' - default to the classic title for a merge message
+
+					Can be one of: 'PR_TITLE', 'MERGE_MESSAGE'`,
+				MarkdownDescription: `
+The default value for a merge commit title.
+
+- ` + "`" + `PR_TITLE` + "`" + ` - default to the pull request's title
+- ` + "`" + `MERGE_MESSAGE` + "`" + ` - default to the classic title for a merge message
+
+Can be one of: ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `MERGE_MESSAGE` + "`",
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("PR_TITLE", "MERGE_MESSAGE"),
+				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"merge_commit_message": schema.StringAttribute{
-				Description:         "The message of merge commits for pull requests.",
-				MarkdownDescription: "The message of merge commits for pull requests.",
-				Optional:            true,
-				Computed:            true,
+				Description: `
+					The default value for a merge commit message.
+
+					- 'PR_TITLE' - default to the pull request's title
+					- 'PR_BODY' - default to the pull request's body
+					- 'BLANK' - default to a blank commit message
+
+					Can be one of: 'PR_BODY', 'PR_TITLE', 'BLANK'`,
+				MarkdownDescription: `
+					The default value for a merge commit message.
+
+					- ` + "`" + `PR_TITLE` + "`" + ` - default to the pull request's title
+					- ` + "`" + `PR_BODY` + "`" + ` - default to the pull request's body
+					- ` + "`" + `BLANK` + "`" + ` - default to a blank commit message
+
+					Can be one of: ` + "`" + `PR_BODY` + "`" + `, ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `BLANK` + "`",
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("PR_BODY", "PR_TITLE", "BLANK"),
+				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
