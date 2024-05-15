@@ -228,7 +228,11 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 
 	Can be one of: ` + "`" + `PR_BODY` + "`" + `, ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `BLANK` + "`" + `.
 
-	` + "`" + `PR_BODY` + "`" + ` defaults to the pull request's body.`,
+	` + "`" + `PR_BODY` + "`" + ` defaults to the pull request's body.
+
+	` + "`" + `PR_TITLE` + "`" + ` defaults to the pull request's body.
+
+	` + "`" + `BLANK` + "`" + ` defaults to a blank commit message.`,
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
