@@ -61,7 +61,11 @@ resource "github_repository" "example" {
 - `homepage` (String) The homepage of the repository.
 - `is_template` (Boolean) Indicates if the repository is a template repository.
 - `license_template` (String) The license template used by the repository.
-- `merge_commit_message` (String) The default value for a merge commit message. `PR_TITLE` defaults to the pull request's title, `PR_BODY` defaults to the pull request's body, and `BLANK` defaults to a blank commit message. Can be one of: `PR_BODY`, `PR_TITLE`, `BLANK`.
+- `merge_commit_message` (String) The default value for a merge commit message.
+Can be one of: `PR_BODY`, `PR_TITLE`, `BLANK`.
+`PR_TITLE` defaults to the pull request's title.
+`PR_BODY` defaults to the pull request's body.
+`BLANK` defaults to a blank commit message.
 - `merge_commit_title` (String) The default value for a merge commit title. `PR_TITLE` defaults to the pull request's title, while `MERGE_MESSAGE` defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name). Can be one of: `PR_TITLE`, `MERGE_MESSAGE`.
 - `private` (Boolean) Indicates if the repository is private.
 - `squash_merge_commit_message` (String) The default value for a squash merge commit message. `PR_BODY` defaults to the pull request's body, `COMMIT_MESSAGES` defaults to the branch's commit messages, and `BLANK` defaults to a blank commit message. Can be one of: `PR_BODY`, `COMMIT_MESSAGES`, `BLANK`.
