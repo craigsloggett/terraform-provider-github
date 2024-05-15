@@ -148,22 +148,22 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Optional:            true,
 			},
 			"allow_squash_merge": schema.BoolAttribute{
-				Description:         "Indicates if squash merging is allowed in the repository.",
-				MarkdownDescription: "Indicates if squash merging is allowed in the repository.",
+				Description:         "Indicates if squash merging is allowed in the repository. Defaults to 'true'.",
+				MarkdownDescription: "Indicates if squash merging is allowed in the repository. Defaults to `true`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
 			},
 			"allow_merge_commit": schema.BoolAttribute{
-				Description:         "Indicates if merge commits are allowed in the repository.",
-				MarkdownDescription: "Indicates if merge commits are allowed in the repository.",
+				Description:         "Indicates if merge commits are allowed in the repository. Defaults to `true`.",
+				MarkdownDescription: "Indicates if merge commits are allowed in the repository. Defaults to `true`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
 			},
 			"allow_rebase_merge": schema.BoolAttribute{
-				Description:         "Indicates if rebase merging is allowed in the repository.",
-				MarkdownDescription: "Indicates if rebase merging is allowed in the repository.",
+				Description:         "Indicates if rebase merging is allowed in the repository. Defaults to `true`.",
+				MarkdownDescription: "Indicates if rebase merging is allowed in the repository. Defaults to `true`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
@@ -187,10 +187,22 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 			"squash_merge_commit_title": schema.StringAttribute{
-				Description:         "The default value for a squash merge commit title. 'PR_TITLE' defaults to the pull request's title, while 'COMMIT_OR_PR_TITLE' defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit). Can be one of: 'PR_TITLE', 'COMMIT_OR_PR_TITLE'.",
-				MarkdownDescription: "The default value for a squash merge commit title. `PR_TITLE` defaults to the pull request's title, while `COMMIT_OR_PR_TITLE` defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit). Can be one of: `PR_TITLE`, `COMMIT_OR_PR_TITLE`.",
-				Optional:            true,
-				Computed:            true,
+				Description: `The default value for a squash merge commit title.
+
+	Can be one of: 'PR_TITLE', 'COMMIT_OR_PR_TITLE'.
+
+	'PR_TITLE' defaults to the pull request's title.
+
+	'COMMIT_OR_PR_TITLE' defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit).`,
+				MarkdownDescription: `The default value for a squash merge commit title.
+
+	Can be one of: ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `COMMIT_OR_PR_TITLE` + "`" + `.
+
+	` + "`" + `PR_TITLE` + "`" + ` defaults to the pull request's title.
+
+	` + "`" + `COMMIT_OR_PR_TITLE` + "`" + ` defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit).`,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_TITLE", "COMMIT_OR_PR_TITLE"),
 				},
@@ -199,10 +211,26 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 			"squash_merge_commit_message": schema.StringAttribute{
-				Description:         "The default value for a squash merge commit message. 'PR_BODY' defaults to the pull request's body, 'COMMIT_MESSAGES' defaults to the branch's commit messages, and 'BLANK' defaults to a blank commit message. Can be one of: 'PR_BODY', 'COMMIT_MESSAGES', 'BLANK'.",
-				MarkdownDescription: "The default value for a squash merge commit message. `PR_BODY` defaults to the pull request's body, `COMMIT_MESSAGES` defaults to the branch's commit messages, and `BLANK` defaults to a blank commit message. Can be one of: `PR_BODY`, `COMMIT_MESSAGES`, `BLANK`.",
-				Optional:            true,
-				Computed:            true,
+				Description: `The default value for a squash merge commit message.
+
+	Can be one of: 'PR_BODY', 'COMMIT_MESSAGES', 'BLANK'.
+
+	'PR_BODY' defaults to the pull request's body.
+
+	'COMMIT_MESSAGES' defaults to the branch's commit messages.
+
+	'BLANK' defaults to a blank commit message.`,
+				MarkdownDescription: `The default value for a squash merge commit message.
+
+	Can be one of: ` + "`" + `PR_BODY` + "`" + `, ` + "`" + `COMMIT_MESSAGES` + "`" + `, ` + "`" + `BLANK` + "`" + `.
+
+	` + "`" + `PR_BODY` + "`" + ` defaults to the pull request's body.
+
+	` + "`" + `COMMIT_MESSAGES` + "`" + ` defaults to the branch's commit messages.
+
+	` + "`" + `BLANK` + "`" + ` defaults to a blank commit message.`,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_BODY", "COMMIT_MESSAGES", "BLANK"),
 				},
@@ -211,10 +239,22 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 			"merge_commit_title": schema.StringAttribute{
-				Description:         "The default value for a merge commit title. 'PR_TITLE' defaults to the pull request's title, while 'MERGE_MESSAGE' defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name). Can be one of: 'PR_TITLE', 'MERGE_MESSAGE'.",
-				MarkdownDescription: "The default value for a merge commit title. `PR_TITLE` defaults to the pull request's title, while `MERGE_MESSAGE` defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name). Can be one of: `PR_TITLE`, `MERGE_MESSAGE`.",
-				Optional:            true,
-				Computed:            true,
+				Description: `The default value for a merge commit title.
+    
+	Can be one of: 'PR_TITLE', 'MERGE_MESSAGE'.
+
+	'PR_TITLE' defaults to the pull request's title.
+
+	'MERGE_MESSAGE' defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).`,
+				MarkdownDescription: `The default value for a merge commit title.
+
+	Can be one of: ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `MERGE_MESSAGE` + "`" + `.
+
+	` + "`" + `PR_TITLE` + "`" + ` defaults to the pull request's title.
+
+	` + "`" + `MERGE_MESSAGE` + "`" + ` defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).`,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_TITLE", "MERGE_MESSAGE"),
 				},
@@ -223,10 +263,26 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 			"merge_commit_message": schema.StringAttribute{
-				Description:         "The default value for a merge commit message.\nCan be one of: 'PR_BODY', 'PR_TITLE', 'BLANK'.\n'PR_TITLE' defaults to the pull request's title.\n'PR_BODY' defaults to the pull request's body.\n'BLANK' defaults to a blank commit message.",
-				MarkdownDescription: "The default value for a merge commit message.\nCan be one of: `PR_BODY`, `PR_TITLE`, `BLANK`.\n`PR_TITLE` defaults to the pull request's title.\n`PR_BODY` defaults to the pull request's body.\n`BLANK` defaults to a blank commit message.",
-				Optional:            true,
-				Computed:            true,
+				Description: `The default value for a merge commit message.
+
+	Can be one of: 'PR_BODY', 'PR_TITLE', 'BLANK'.
+
+	'PR_BODY' defaults to the pull request's body.
+
+	'PR_TITLE' defaults to the pull request's body.
+
+	'BLANK' defaults to a blank commit message.`,
+				MarkdownDescription: `The default value for a merge commit message.
+
+	Can be one of: ` + "`" + `PR_BODY` + "`" + `, ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `BLANK` + "`" + `.
+
+	` + "`" + `PR_BODY` + "`" + ` defaults to the pull request's body.
+
+	` + "`" + `PR_TITLE` + "`" + ` defaults to the pull request's body.
+
+	` + "`" + `BLANK` + "`" + ` defaults to a blank commit message.`,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_BODY", "PR_TITLE", "BLANK"),
 				},
