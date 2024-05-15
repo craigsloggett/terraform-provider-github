@@ -64,7 +64,13 @@ resource "github_repository" "example" {
 - `merge_commit_message` (String) The message of merge commits for pull requests.
 - `merge_commit_title` (String) The title of merge commits for pull requests.
 - `private` (Boolean) Indicates if the repository is private.
-- `squash_merge_commit_message` (String) The message of squash merge commits for pull requests.
+- `squash_merge_commit_message` (String) The default value for a squash merge commit message.
+
+				- `PR_BODY` - default to the pull request's body
+				- `COMMIT_MESSAGES` - default to the branch's commit messages
+				- `BLANK` - default to a blank commit message
+
+				Can be one of: `PR_BODY`, `COMMIT_MESSAGES`, `BLANK`
 - `squash_merge_commit_title` (String) The title of squash merge commits for pull requests.
 
 ### Read-Only

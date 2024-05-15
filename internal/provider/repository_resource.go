@@ -199,10 +199,24 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 			"squash_merge_commit_message": schema.StringAttribute{
-				Description:         "The message of squash merge commits for pull requests.",
-				MarkdownDescription: "The message of squash merge commits for pull requests.",
-				Optional:            true,
-				Computed:            true,
+				Description: `
+				The default value for a squash merge commit message.
+
+				- 'PR_BODY' - default to the pull request's body
+				- 'COMMIT_MESSAGES' - default to the branch's commit messages
+				- 'BLANK' - default to a blank commit message
+
+				Can be one of: 'PR_BODY', 'COMMIT_MESSAGES', 'BLANK'`,
+				MarkdownDescription: `
+				The default value for a squash merge commit message.
+
+				- ` + "`" + `PR_BODY` + "`" + ` - default to the pull request's body
+				- ` + "`" + `COMMIT_MESSAGES` + "`" + ` - default to the branch's commit messages
+				- ` + "`" + `BLANK` + "`" + ` - default to a blank commit message
+
+				Can be one of: ` + "`" + `PR_BODY` + "`" + `, ` + "`" + `COMMIT_MESSAGES` + "`" + `, ` + "`" + `BLANK` + "`",
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_BODY", "COMMIT_MESSAGES", "BLANK"),
 				},
