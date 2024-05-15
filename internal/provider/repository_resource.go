@@ -51,7 +51,6 @@ type GitHubRepositoryResourceModel struct {
 	SquashMergeCommitMessage types.String `tfsdk:"squash_merge_commit_message"`
 	MergeCommitTitle         types.String `tfsdk:"merge_commit_title"`
 	MergeCommitMessage       types.String `tfsdk:"merge_commit_message"`
-	HasDownloads             types.Bool   `tfsdk:"has_downloads"`
 	IsTemplate               types.Bool   `tfsdk:"is_template"`
 
 	// Attributes
@@ -104,18 +103,14 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				MarkdownDescription: "Indicates if the repository has issues enabled.",
 				Optional:            true,
 				Computed:            true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
+				Default:             booldefault.StaticBool(true),
 			},
 			"has_projects": schema.BoolAttribute{
 				Description:         "Indicates if the repository has projects enabled.",
 				MarkdownDescription: "Indicates if the repository has projects enabled.",
 				Optional:            true,
 				Computed:            true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
+				Default:             booldefault.StaticBool(true),
 			},
 			"has_wiki": schema.BoolAttribute{
 				Description:         "Indicates if the repository has wiki enabled.",
@@ -155,9 +150,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				MarkdownDescription: "Indicates if squash merging is allowed in the repository.",
 				Optional:            true,
 				Computed:            true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
+				Default:             booldefault.StaticBool(true),
 			},
 			"allow_merge_commit": schema.BoolAttribute{
 				Description:         "Indicates if merge commits are allowed in the repository.",
@@ -171,9 +164,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				MarkdownDescription: "Indicates if rebase merging is allowed in the repository.",
 				Optional:            true,
 				Computed:            true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
+				Default:             booldefault.StaticBool(true),
 			},
 			"allow_auto_merge": schema.BoolAttribute{
 				Description:         "Indicates if auto-merging is allowed in the repository.",
@@ -227,15 +218,6 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"has_downloads": schema.BoolAttribute{
-				Description:         "Indicates if the repository has downloads enabled.",
-				MarkdownDescription: "Indicates if the repository has downloads enabled.",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"is_template": schema.BoolAttribute{
@@ -328,7 +310,6 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
 	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	model.HasDownloads = types.BoolValue(repo.GetHasDownloads())
 	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
 
 	model.ID = types.Int64Value(repo.GetID())
@@ -371,7 +352,6 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		SquashMergeCommitMessage: github.String(types.String.ValueString(model.SquashMergeCommitMessage)),
 		MergeCommitTitle:         github.String(types.String.ValueString(model.MergeCommitTitle)),
 		MergeCommitMessage:       github.String(types.String.ValueString(model.MergeCommitMessage)),
-		HasDownloads:             github.Bool(types.Bool.ValueBool(model.HasDownloads)),
 		IsTemplate:               github.Bool(types.Bool.ValueBool(model.IsTemplate)),
 	}
 
@@ -402,7 +382,6 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
 	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	model.HasDownloads = types.BoolValue(repo.GetHasDownloads())
 	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
 
 	model.ID = types.Int64Value(repo.GetID())
@@ -454,7 +433,6 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		SquashMergeCommitMessage: github.String(types.String.ValueString(model.SquashMergeCommitMessage)),
 		MergeCommitTitle:         github.String(types.String.ValueString(model.MergeCommitTitle)),
 		MergeCommitMessage:       github.String(types.String.ValueString(model.MergeCommitMessage)),
-		HasDownloads:             github.Bool(types.Bool.ValueBool(model.HasDownloads)),
 		IsTemplate:               github.Bool(types.Bool.ValueBool(model.IsTemplate)),
 	}
 
@@ -485,7 +463,6 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
 	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	model.HasDownloads = types.BoolValue(repo.GetHasDownloads())
 	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
 
 	model.ID = types.Int64Value(repo.GetID())
