@@ -56,7 +56,6 @@ resource "github_repository" "example" {
 - `description` (String) The description of the repository.
 - `gitignore_template` (String) The .gitignore template used by the repository.
 - `has_discussions` (Boolean) Indicates if the repository has discussions enabled.
-- `has_downloads` (Boolean) Indicates if the repository has downloads enabled.
 - `has_issues` (Boolean) Indicates if the repository has issues enabled.
 - `has_projects` (Boolean) Indicates if the repository has projects enabled.
 - `has_wiki` (Boolean) Indicates if the repository has wiki enabled.
