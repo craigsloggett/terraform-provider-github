@@ -68,7 +68,6 @@ resource "github_repository" "example" {
 - `private` (Boolean) Indicates if the repository is private.
 - `squash_merge_commit_message` (String) The message of squash merge commits for pull requests.
 - `squash_merge_commit_title` (String) The title of squash merge commits for pull requests.
-- `team_id` (Number) The ID of the team associated with the repository.
 
 ### Read-Only
 
