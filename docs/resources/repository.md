@@ -47,9 +47,9 @@ resource "github_repository" "example" {
 ### Optional
 
 - `allow_auto_merge` (Boolean) Indicates if auto-merging is allowed in the repository.
-- `allow_merge_commit` (Boolean) Indicates if merge commits are allowed in the repository.
-- `allow_rebase_merge` (Boolean) Indicates if rebase merging is allowed in the repository.
-- `allow_squash_merge` (Boolean) Indicates if squash merging is allowed in the repository.
+- `allow_merge_commit` (Boolean) Indicates if merge commits are allowed in the repository. Defaults to `true`.
+- `allow_rebase_merge` (Boolean) Indicates if rebase merging is allowed in the repository. Defaults to `true`.
+- `allow_squash_merge` (Boolean) Indicates if squash merging is allowed in the repository. Defaults to `true`.
 - `auto_init` (Boolean) Indicates if the repository is initialized with a README.
 - `delete_branch_on_merge` (Boolean) Indicates if branches are automatically deleted when pull requests are merged.
 - `description` (String) The description of the repository.
