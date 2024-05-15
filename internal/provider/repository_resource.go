@@ -226,13 +226,13 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Description: "The default value for a merge commit message.\nCan be one of: 'PR_BODY', 'PR_TITLE', 'BLANK'.\n'PR_TITLE' defaults to the pull request's title.\n'PR_BODY' defaults to the pull request's body.\n'BLANK' defaults to a blank commit message.",
 				MarkdownDescription: `The default value for a merge commit message.
 
-	` + "`" + `PR_BODY` + "`" + ` defaults to the pull request's body.
+		` + "`" + `PR_BODY` + "`" + ` defaults to the pull request's body.
 
-	` + "`" + `PR_TITLE` + "`" + ` defaults to the pull request's body.
+		` + "`" + `PR_TITLE` + "`" + ` defaults to the pull request's body.
 
-	` + "`" + `BLANK` + "`" + ` defaults to a blank commit message.
+		` + "`" + `BLANK` + "`" + ` defaults to a blank commit message.
 
-	Can be one of: ` + "`" + `PR_BODY` + "`" + `, ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `BLANK` + "`",
+		Can be one of: ` + "`" + `PR_BODY` + "`" + `, ` + "`" + `PR_TITLE` + "`" + `, ` + "`" + `BLANK` + "`",
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
