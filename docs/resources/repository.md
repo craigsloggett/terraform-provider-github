@@ -21,7 +21,6 @@ resource "github_repository" "example" {
   has_projects                = true
   has_wiki                    = true
   has_discussions             = true
-  team_id                     = 1234
   auto_init                   = true
   gitignore_template          = "Terraform"
   license_template            = "mpl-2.0"
@@ -34,7 +33,6 @@ resource "github_repository" "example" {
   squash_merge_commit_message = "COMMIT_MESSAGES"
   merge_commit_title          = "PR_TITLE"
   merge_commit_message        = "PR_BODY"
-  has_downloads               = true
   is_template                 = true
 }
 ```
@@ -73,4 +71,11 @@ resource "github_repository" "example" {
 - `id` (Number) GitHub ID for the repository.
 - `node_id` (String) The node ID of the repository.
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+# Repositories can be imported using the numerical ID of the repository. 
+terraform import github_repository.test 123456789
+```
