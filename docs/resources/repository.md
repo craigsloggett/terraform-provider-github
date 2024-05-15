@@ -61,17 +61,34 @@ resource "github_repository" "example" {
 - `homepage` (String) The homepage of the repository.
 - `is_template` (Boolean) Indicates if the repository is a template repository.
 - `license_template` (String) The license template used by the repository.
-- `merge_commit_message` (String) The message of merge commits for pull requests.
-- `merge_commit_title` (String) The title of merge commits for pull requests.
+- `merge_commit_message` (String) The default value for a merge commit message.
+
+					- `PR_TITLE` - default to the pull request's title
+					- `PR_BODY` - default to the pull request's body
+					- `BLANK` - default to a blank commit message
+
+					Can be one of: `PR_BODY`, `PR_TITLE`, `BLANK`
+- `merge_commit_title` (String) The default value for a merge commit title.
+
+- `PR_TITLE` - default to the pull request's title
+- `MERGE_MESSAGE` - default to the classic title for a merge message
+
+Can be one of: `PR_TITLE`, `MERGE_MESSAGE`
 - `private` (Boolean) Indicates if the repository is private.
 - `squash_merge_commit_message` (String) The default value for a squash merge commit message.
 
-				- `PR_BODY` - default to the pull request's body
-				- `COMMIT_MESSAGES` - default to the branch's commit messages
-				- `BLANK` - default to a blank commit message
+					- `PR_BODY` - default to the pull request's body
+					- `COMMIT_MESSAGES` - default to the branch's commit messages
+					- `BLANK` - default to a blank commit message
 
-				Can be one of: `PR_BODY`, `COMMIT_MESSAGES`, `BLANK`
-- `squash_merge_commit_title` (String) The title of squash merge commits for pull requests.
+					Can be one of: `PR_BODY`, `COMMIT_MESSAGES`, `BLANK`
+- `squash_merge_commit_title` (String) The default value for a squash merge commit title.
+
+					- `PR_TITLE` - default to the pull request's title
+					- `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or 
+					the pull request's title (when more than one commit)
+
+					Can be one of: `PR_TITLE`, `COMMIT_OR_PR_TITLE`
 
 ### Read-Only
 
