@@ -35,8 +35,20 @@ jobs:
           if [ "${{ steps.latest-version.outputs.version }}" != "${{ steps.current-version.outputs.version }}" ]; then
             echo "update=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Create Branch and Update Go Version
+      - name: Check for an Existing Pull Request
+        id: check-open-pull-requests
         if: steps.compare-versions.outputs.update == 'true'
+        run: |
+          BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
+          if gh pr list --head "$BRANCH_NAME" --state open --json number | jq -e '. | length > 0' >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Create Branch and Update Go Version
+        if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
         run: |
           git config --global user.name "craigsloggett"
           git config --global user.email "684196+craigsloggett@users.noreply.github.com"
@@ -54,7 +66,7 @@ jobs:
 
           echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
       - name: Create Pull Request
-        if: steps.compare-versions.outputs.update == 'true'
+        if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
         run: |
           gh pr create \
             --title "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}" \
