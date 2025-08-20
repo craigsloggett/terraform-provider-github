@@ -1,5 +1,5 @@
-BIN           := $(PWD)/_bin
-CACHE         := $(PWD)/_cache
+BIN           := $(PWD)/.local/bin
+CACHE         := $(PWD)/.local/cache
 GOPATH        := $(CACHE)/go
 PATH          := $(BIN):$(PATH)
 SHELL         := env PATH=$(PATH) GOPATH=$(GOPATH) /bin/sh
