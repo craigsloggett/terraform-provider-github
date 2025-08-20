@@ -1,0 +1,65 @@
+name: Update
+
+on:
+  schedule:
+    # Run weekly on Mondays at 10:00 UTC
+    - cron: 0 10 * * 1
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  go:
+    name: Go
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Get Latest Go Version
+        id: latest-version
+        run: |
+          # Get the latest stable Go version from the Go API.
+          LATEST_VERSION=$(curl -s "https://go.dev/api?mode=json" | jq -r '.[0].version' | sed 's/go//')
+          echo "version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
+      - name: Get Current Go Version
+        id: current-version
+        run: |
+          # Get the current version from the Makefile.
+          CURRENT_VERSION=$(grep "^go_version" Makefile | cut -d' ' -f3)
+          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+      - name: Compare Go Versions
+        id: compare-versions
+        run: |
+          if [ "${{ steps.latest-version.outputs.version }}" != "${{ steps.current-version.outputs.version }}" ]; then
+            echo "update=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create Branch and Update Go Version
+        if: steps.compare-versions.outputs.update == 'true'
+        run: |
+          git config --global user.name "craigsloggett"
+          git config --global user.email "684196+craigsloggett@users.noreply.github.com"
+
+          BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
+          git checkout -b "$BRANCH_NAME"
+
+          # Update Go version in configuration.
+          sed -i "s/^go_version.*:= .*/go_version           := ${{ steps.latest-version.outputs.version }}/" Makefile
+          sed -i "s/^go .*/go \"${{ steps.latest-version.outputs.version }}\"/" go.mod
+
+          git add Makefile go.mod
+          git commit -m "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}"
+          git push origin "$BRANCH_NAME"
+
+          echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
+      - name: Create Pull Request
+        if: steps.compare-versions.outputs.update == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}" \
+            --body "Automated update of Go from v${{ steps.current-version.outputs.version }} to v${{ steps.latest-version.outputs.version }}." \
+            --base main \
+            --head "${{ env.BRANCH_NAME }}"
