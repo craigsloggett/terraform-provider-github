@@ -10,6 +10,7 @@ go_version           := 1.25.0
 golangci_version     := 2.4.0
 tfplugindocs_version := 0.20.1
 actionlint_version   := 1.7.7
+shellcheck_version   := 0.11.0
 
 # Operating System and Architecture
 os ?= $(shell uname|tr A-Z a-z)
@@ -18,14 +19,15 @@ ifeq ($(shell uname -m),x86_64)
   arch   ?= amd64
 endif
 ifeq ($(shell uname -m),arm64)
-  arch   ?= arm64
+  arch     ?= arm64
+  arch_alt ?= aarch64
 endif
 
 .PHONY: all
 all: format lint install docs test
 
 .PHONY: tools
-tools: $(BIN)/go $(BIN)/golangci-lint $(GOPATH)/bin/tfplugindocs $(BIN)/actionlint
+tools: $(BIN)/go $(BIN)/golangci-lint $(GOPATH)/bin/tfplugindocs $(BIN)/actionlint $(BIN)/shellcheck
 
 # Setup Go
 go_package_name := go$(go_version).$(os)-$(arch)
@@ -70,6 +72,18 @@ $(BIN)/actionlint:
 	@tar -C $(actionlint_install_path) -xzf $(BIN)/$(actionlint_package_name).tar.gz && rm $(BIN)/$(actionlint_package_name).tar.gz
 	@ln -s $(actionlint_install_path)/actionlint $(BIN)/actionlint
 
+# Setup shellcheck
+shellcheck_package_name := shellcheck-v$(shellcheck_version).$(os).$(arch_alt)
+shellcheck_package_url  := https://github.com/koalaman/shellcheck/releases/download/v$(shellcheck_version)/$(shellcheck_package_name).tar.xz
+shellcheck_install_path := $(BIN)/shellcheck-v$(shellcheck_version)
+
+$(BIN)/shellcheck:
+	@mkdir -p $(BIN)
+	@echo "Downloading shellcheck $(shellcheck_version) to $(BIN)/shellcheck-$(shellcheck_version)..."
+	@curl --silent --show-error --fail --create-dirs --output-dir $(BIN) -O -L $(shellcheck_package_url)
+	@tar -C $(BIN) -xf $(BIN)/$(shellcheck_package_name).tar.xz && rm $(BIN)/$(shellcheck_package_name).tar.xz
+	@ln -s $(shellcheck_install_path)/shellcheck $(BIN)/shellcheck
+
 .PHONY: update
 update: $(BIN)/go
 	@echo "Updating dependencies..."
@@ -95,7 +109,7 @@ format: tools
 lint: tools update
 	@echo "Linting..."
 	@golangci-lint run ./...
-	@actionlint .github/workflows/*.yml
+	@actionlint
 
 .PHONY: docs
 docs: tools update install
