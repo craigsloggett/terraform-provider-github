@@ -55,11 +55,11 @@ jobs:
           echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
       - name: Create Pull Request
         if: steps.compare-versions.outputs.update == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr create \
             --title "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}" \
             --body "Automated update of Go from v${{ steps.current-version.outputs.version }} to v${{ steps.latest-version.outputs.version }}." \
             --base main \
             --head "${{ env.BRANCH_NAME }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
