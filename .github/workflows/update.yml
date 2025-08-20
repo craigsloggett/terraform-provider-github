@@ -21,13 +21,13 @@ jobs:
         id: latest-version
         run: |
           # Get the latest stable Go version from the Go API.
-          LATEST_VERSION=$(curl -s "https://go.dev/api?mode=json" | jq -r '.[0].version' | sed 's/go//')
+          LATEST_VERSION=$(curl -s "https://go.dev/dl/?mode=json" | jq -r '.[0].version' | sed 's/go//')
           echo "version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
       - name: Get Current Go Version
         id: current-version
         run: |
           # Get the current version from the Makefile.
-          CURRENT_VERSION=$(grep "^go_version" Makefile | cut -d' ' -f3)
+          CURRENT_VERSION=$(grep "^go_version" Makefile | tr -s ' ' | cut -d' ' -f3)
           echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
       - name: Compare Go Versions
         id: compare-versions
