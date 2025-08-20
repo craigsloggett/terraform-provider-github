@@ -65,6 +65,11 @@ jobs:
           git push origin "$BRANCH_NAME"
 
           echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
+      - name: Update Dependencies
+        if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
+        run: |
+          make clean
+          make update
       - name: Create Pull Request
         if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
         run: |
