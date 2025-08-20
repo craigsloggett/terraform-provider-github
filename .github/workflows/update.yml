@@ -56,20 +56,20 @@ jobs:
           BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
           git checkout -b "$BRANCH_NAME"
 
-          # Update Go version in configuration.
           sed -i "s/^go_version.*:= .*/go_version           := ${{ steps.latest-version.outputs.version }}/" Makefile
           sed -i "s/^go .*/go ${{ steps.latest-version.outputs.version }}/" go.mod
 
           git add Makefile go.mod
           git commit -m "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}"
+
+          make clean
+          make update
+          git add go.mod go.sum
+          git commit -m "chore(deps): Update dependencies"
+
           git push origin "$BRANCH_NAME"
 
           echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
-      - name: Update Dependencies
-        if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
-        run: |
-          make clean
-          make update
       - name: Create Pull Request
         if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
         run: |
