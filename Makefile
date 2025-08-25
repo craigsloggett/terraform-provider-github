@@ -8,7 +8,7 @@ PROVIDER_NAME := terraform-provider-github
 # Versions
 go_version           := 1.25.0
 golangci_version     := 2.4.0
-tfplugindocs_version := 0.20.1
+tfplugindocs_version := 0.22.0
 actionlint_version   := 1.7.7
 shellcheck_version   := 0.11.0
 
@@ -27,7 +27,7 @@ endif
 all: format lint install docs test
 
 .PHONY: tools
-tools: $(BIN)/go $(BIN)/golangci-lint $(GOPATH)/bin/tfplugindocs $(BIN)/actionlint $(BIN)/shellcheck
+tools: $(BIN)/go $(BIN)/golangci-lint $(BIN)/tfplugindocs $(BIN)/actionlint $(BIN)/shellcheck
 
 # Setup Go
 go_package_name := go$(go_version).$(os)-$(arch)
@@ -50,14 +50,23 @@ golangci_install_path := $(BIN)/$(golangci_package_name)
 
 $(BIN)/golangci-lint:
 	@mkdir -p $(BIN)
-	@echo "Downloading golangci-lint $(golangci_version) to $(BIN)/golangci-lint-$(golangci_version)..."
+	@echo "Downloading golangci-lint $(golangci_version) to $(BIN)/golangci-lint-$(golangci_version)..." #TODO: Update this line to use golangci_install_path
 	@curl --silent --show-error --fail --create-dirs --output-dir $(BIN) -O -L $(golangci_package_url)
 	@tar -C $(BIN) -xzf $(BIN)/$(golangci_package_name).tar.gz && rm $(BIN)/$(golangci_package_name).tar.gz
 	@ln -s $(golangci_install_path)/golangci-lint $(BIN)/golangci-lint
 
 # Setup tfplugindocs
-$(GOPATH)/bin/tfplugindocs: $(BIN)/go
-	@go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v$(tfplugindocs_version)
+tfplugindocs_package_name := tfplugindocs_$(tfplugindocs_version)_$(os)_$(arch)
+tfplugindocs_package_url  := https://github.com/hashicorp/terraform-plugin-docs/releases/download/v$(tfplugindocs_version)/$(tfplugindocs_package_name).zip
+tfplugindocs_install_path := $(BIN)/$(tfplugindocs_package_name)
+
+$(BIN)/tfplugindocs:
+	@mkdir -p $(BIN)
+	@echo "Downloading tfplugindocs $(tfplugindocs_version) to $(tfplugindocs_install_path)..."
+	@mkdir -p $(tfplugindocs_install_path) # actionlint isn't packaged in a directory
+	@curl --silent --show-error --fail --create-dirs --output-dir $(tfplugindocs_install_path) -O -L $(tfplugindocs_package_url)
+	@cd $(tfplugindocs_install_path) && unzip $(tfplugindocs_package_name).zip && rm $(tfplugindocs_package_name).zip && cd -
+	@ln -s $(tfplugindocs_install_path)/tfplugindocs $(BIN)/tfplugindocs
 
 # Setup actionlint
 actionlint_package_name := actionlint_$(actionlint_version)_$(os)_$(arch)
@@ -114,7 +123,7 @@ lint: tools update
 .PHONY: docs
 docs: tools update install
 	@echo "Generating Docs..."
-	@$(GOPATH)/bin/./tfplugindocs generate -rendered-provider-name "GitHub" >/dev/null
+	@$(BIN)/./tfplugindocs generate -rendered-provider-name "GitHub" >/dev/null
 
 .PHONY: test
 test: install
