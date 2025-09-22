@@ -4,10 +4,10 @@ go 1.25.1
 
 require (
 	github.com/google/go-github/v60 v60.0.0
-	github.com/hashicorp/terraform-plugin-framework v1.15.1
+	github.com/hashicorp/terraform-plugin-framework v1.16.0
 	github.com/hashicorp/terraform-plugin-framework-timetypes v0.5.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.18.0
-	github.com/hashicorp/terraform-plugin-go v0.28.0
+	github.com/hashicorp/terraform-plugin-go v0.29.0
 	github.com/hashicorp/terraform-plugin-testing v1.13.3
 )
 
@@ -61,6 +61,6 @@ require (
 	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250908214217-97024824d090 // indirect
-	google.golang.org/grpc v1.75.0 // indirect
+	google.golang.org/grpc v1.75.1 // indirect
 	google.golang.org/protobuf v1.36.9 // indirect
 )
