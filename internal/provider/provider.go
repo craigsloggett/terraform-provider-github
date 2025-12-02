@@ -7,7 +7,7 @@ import (
 
 	"github.com/craigsloggett/terraform-provider-github/internal/functions"
 
-	"github.com/google/go-github/v60/github"
+	"github.com/google/go-github/v79/github"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
