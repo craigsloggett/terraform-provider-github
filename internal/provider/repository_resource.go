@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/google/go-github/v60/github"
+	"github.com/google/go-github/v79/github"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -240,7 +240,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 			},
 			"merge_commit_title": schema.StringAttribute{
 				Description: `The default value for a merge commit title.
-    
+
 	Must be one of:
 
 	'PR_TITLE' defaults to the pull request's title.
