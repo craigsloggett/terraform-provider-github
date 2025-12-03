@@ -60,6 +60,32 @@ type GitHubRepositoryResourceModel struct {
 	NodeID types.String `tfsdk:"node_id"`
 }
 
+// UpdateFromAPI populates the model with data from the GitHub API repository object.
+func (m *GitHubRepositoryResourceModel) UpdateFromAPI(repo *github.Repository) {
+	// Arguments
+	m.Name = types.StringValue(repo.GetName())
+	m.Description = types.StringValue(repo.GetDescription())
+	m.Homepage = types.StringValue(repo.GetHomepage())
+	m.Private = types.BoolValue(repo.GetPrivate())
+	m.HasIssues = types.BoolValue(repo.GetHasIssues())
+	m.HasProjects = types.BoolValue(repo.GetHasProjects())
+	m.HasWiki = types.BoolValue(repo.GetHasWiki())
+	m.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	m.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	m.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	m.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	m.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	m.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	m.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	m.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	m.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	m.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	m.IsTemplate = types.BoolValue(repo.GetIsTemplate())
+	// Attributes
+	m.ID = types.Int64Value(repo.GetID())
+	m.NodeID = types.StringValue(repo.GetNodeID())
+}
+
 func (r *GitHubRepositoryResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repository"
 }
@@ -363,27 +389,7 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	model.Name = types.StringValue(repo.GetName())
-	model.Description = types.StringValue(repo.GetDescription())
-	model.Homepage = types.StringValue(repo.GetHomepage())
-	model.Private = types.BoolValue(repo.GetPrivate())
-	model.HasIssues = types.BoolValue(repo.GetHasIssues())
-	model.HasProjects = types.BoolValue(repo.GetHasProjects())
-	model.HasWiki = types.BoolValue(repo.GetHasWiki())
-	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
-	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
-	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
-	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
-	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
-	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
-	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
-	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
-	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
-	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
-
-	model.ID = types.Int64Value(repo.GetID())
-	model.NodeID = types.StringValue(repo.GetNodeID())
+	model.UpdateFromAPI(repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -435,27 +441,7 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	model.Name = types.StringValue(repo.GetName())
-	model.Description = types.StringValue(repo.GetDescription())
-	model.Homepage = types.StringValue(repo.GetHomepage())
-	model.Private = types.BoolValue(repo.GetPrivate())
-	model.HasIssues = types.BoolValue(repo.GetHasIssues())
-	model.HasProjects = types.BoolValue(repo.GetHasProjects())
-	model.HasWiki = types.BoolValue(repo.GetHasWiki())
-	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
-	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
-	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
-	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
-	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
-	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
-	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
-	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
-	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
-	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
-
-	model.ID = types.Int64Value(repo.GetID())
-	model.NodeID = types.StringValue(repo.GetNodeID())
+	model.UpdateFromAPI(repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -516,27 +502,7 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	model.Name = types.StringValue(repo.GetName())
-	model.Description = types.StringValue(repo.GetDescription())
-	model.Homepage = types.StringValue(repo.GetHomepage())
-	model.Private = types.BoolValue(repo.GetPrivate())
-	model.HasIssues = types.BoolValue(repo.GetHasIssues())
-	model.HasProjects = types.BoolValue(repo.GetHasProjects())
-	model.HasWiki = types.BoolValue(repo.GetHasWiki())
-	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
-	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
-	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
-	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
-	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
-	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
-	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
-	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
-	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
-	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
-
-	model.ID = types.Int64Value(repo.GetID())
-	model.NodeID = types.StringValue(repo.GetNodeID())
+	model.UpdateFromAPI(repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
