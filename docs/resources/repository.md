@@ -59,7 +59,6 @@ resource "github_repository" "example" {
 - `has_projects` (Boolean) Indicates if the repository has projects enabled.
 - `has_wiki` (Boolean) Indicates if the repository has wiki enabled.
 - `homepage` (String) The homepage of the repository.
-- `include_all_branches` (Boolean) Include all branches from the template repository. Defaults to `false`.
 - `is_template` (Boolean) Indicates if the repository is a template repository.
 - `license_template` (String) The license template used by the repository.
 - `merge_commit_message` (String) The default value for a merge commit message.
@@ -95,8 +94,6 @@ resource "github_repository" "example" {
 	`PR_TITLE` defaults to the pull request's title.
 
 	`COMMIT_OR_PR_TITLE` defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit).
-- `template_owner` (String) The owner of the template repository.
-- `template_repository_name` (String) The name of the template repository.
 
 ### Read-Only
 
