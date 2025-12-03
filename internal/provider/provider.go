@@ -26,8 +26,9 @@ type GitHubProviderModel struct {
 }
 
 type GitHubClientConfiguration struct {
-	Client *github.Client
-	Owner  string
+	Client       *github.Client
+	Owner        string
+	Organization string
 }
 
 func NewGitHubProvider() func() provider.Provider {
@@ -57,6 +58,7 @@ func (p *GitHubProvider) Schema(_ context.Context, _ provider.SchemaRequest, res
 
 func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var model GitHubProviderModel
+	var organization string
 
 	owner := os.Getenv("GITHUB_OWNER")
 	token := os.Getenv("GITHUB_TOKEN")
@@ -79,6 +81,7 @@ func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRe
 				"the GITHUB_TOKEN environment variable or provider configuration "+
 				"block token attribute.",
 		)
+		return
 	}
 
 	client := github.NewClient(nil).WithAuthToken(token)
@@ -88,25 +91,29 @@ func (p *GitHubProvider) Configure(ctx context.Context, req provider.ConfigureRe
 		owner = model.Owner.ValueString()
 	}
 
-	// If an owner has not been configured, default to the individual user account owning the token.
-	if owner == "" {
+	// Fetch the user or organization based on the configured owner.
+	// If owner is empty, GitHub will return the authenticated user.
+	user, _, err := client.Users.Get(ctx, owner)
 
-		user, _, err := client.Users.Get(ctx, "")
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Communicating with the GitHub API",
+			fmt.Sprintf("Unable to get user, got error: %s", err),
+		)
+		return
+	}
 
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Communicating with the GitHub API",
-				fmt.Sprintf("Unable to get user, got error: %s", err),
-			)
-			return
-		}
+	// Use what the GitHub API returns as the canonical owner string.
+	owner = user.GetLogin()
 
-		owner = user.GetLogin()
+	if user.GetType() == "Organization" {
+		organization = owner
 	}
 
 	config := &GitHubClientConfiguration{
-		Client: client,
-		Owner:  owner,
+		Client:       client,
+		Owner:        owner,
+		Organization: organization,
 	}
 
 	resp.DataSourceData = config
