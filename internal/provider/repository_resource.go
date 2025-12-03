@@ -23,8 +23,9 @@ var _ resource.Resource = &GitHubRepositoryResource{}
 var _ resource.ResourceWithImportState = &GitHubRepositoryResource{}
 
 type GitHubRepositoryResource struct {
-	client *github.Client
-	owner  string
+	client       *github.Client
+	owner        string
+	organization string
 }
 
 func NewGitHubRepositoryResource() resource.Resource {
@@ -365,6 +366,7 @@ func (r *GitHubRepositoryResource) Configure(_ context.Context, req resource.Con
 
 	r.client = config.Client
 	r.owner = config.Owner
+	r.organization = config.Organization
 }
 
 func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -399,6 +401,7 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 	var model GitHubRepositoryResourceModel
 
 	client := r.client
+	organization := r.organization
 
 	// Read Terraform plan data into the model.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &model)...)
@@ -431,7 +434,7 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		IsTemplate:               github.Ptr(types.Bool.ValueBool(model.IsTemplate)),
 	}
 
-	repo, _, err := client.Repositories.Create(ctx, "", repository)
+	repo, _, err := client.Repositories.Create(ctx, organization, repository)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
