@@ -147,7 +147,7 @@ func TestAccRepositoryResource(t *testing.T) {
 					statecheck.ExpectKnownValue(
 						"github_repository.test",
 						tfjsonpath.New("merge_commit_message"),
-						knownvalue.StringExact("MERGE_MESSAGE"),
+						knownvalue.StringExact("PR_BODY"),
 					),
 					statecheck.ExpectKnownValue(
 						"github_repository.test",
