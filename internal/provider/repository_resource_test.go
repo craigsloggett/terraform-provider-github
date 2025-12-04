@@ -61,7 +61,7 @@ func TestAccRepositoryResourceDefaults(t *testing.T) {
 					statecheck.ExpectKnownValue(
 						"github_repository.test",
 						tfjsonpath.New("has_wiki"),
-						knownvalue.Bool(false),
+						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
 						"github_repository.test",
@@ -472,7 +472,7 @@ resource "github_repository" "test" {
   name                = %[1]q
   template_repository = "terraform-module-template"
 
-  private         = true
+  private         = false
   has_issues      = true
   has_projects    = true
   has_wiki        = true
