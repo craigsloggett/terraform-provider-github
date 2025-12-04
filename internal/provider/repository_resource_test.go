@@ -13,7 +13,7 @@ import (
 
 func testAccRepositoryResourceDefaultsConfig(name string) string {
 	return fmt.Sprintf(`
-resource "github_repository" "test_defaults" {
+resource "github_repository" "test" {
   name = %[1]q
 }
 `, name)
@@ -29,99 +29,99 @@ func TestAccRepositoryResourceDefaults(t *testing.T) {
 				Config: providerConfig + testAccRepositoryResourceDefaultsConfig(repoName),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("name"),
 						knownvalue.StringExact(repoName),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("description"),
 						knownvalue.StringExact(""),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("homepage"),
 						knownvalue.StringExact(""),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("private"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("has_issues"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("has_projects"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("has_wiki"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("has_discussions"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("allow_squash_merge"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("allow_merge_commit"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("allow_rebase_merge"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("allow_auto_merge"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("delete_branch_on_merge"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("squash_merge_commit_title"),
 						knownvalue.StringExact("COMMIT_OR_PR_TITLE"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("squash_merge_commit_message"),
 						knownvalue.StringExact("COMMIT_MESSAGES"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("merge_commit_message"),
 						knownvalue.StringExact("PR_TITLE"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("merge_commit_title"),
 						knownvalue.StringExact("MERGE_MESSAGE"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_defaults",
+						"github_repository.test",
 						tfjsonpath.New("is_template"),
 						knownvalue.Bool(false),
 					),
 				},
 			},
 			{
-				ResourceName:      "github_repository.test_defaults",
+				ResourceName:      "github_repository.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -133,7 +133,7 @@ func TestAccRepositoryResourceDefaults(t *testing.T) {
 			{
 				Config: providerConfig + testAccRepositoryResourceDefaultsConfig(repoName+"-updated"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("github_repository.test_defaults", "name", repoName+"-updated"),
+					resource.TestCheckResourceAttr("github_repository.test", "name", repoName+"-updated"),
 				),
 			},
 		},
@@ -142,7 +142,7 @@ func TestAccRepositoryResourceDefaults(t *testing.T) {
 
 func testAccRepositoryResourceAllArgumentsConfig(name string) string {
 	return fmt.Sprintf(`
-resource "github_repository" "test_all_arguments" {
+resource "github_repository" "test" {
   name                     = %[1]q
 
   allow_auto_merge            = true
@@ -182,114 +182,114 @@ func TestAccRepositoryResourceAllArguments(t *testing.T) {
 				Config: providerConfig + testAccRepositoryResourceAllArgumentsConfig(repoName),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("name"),
 						knownvalue.StringExact(repoName),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("description"),
 						knownvalue.StringExact("This is a description."),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("homepage"),
 						knownvalue.StringExact("https://github.com"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("private"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("has_issues"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("has_projects"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("has_wiki"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("has_discussions"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("auto_init"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("gitignore_template"),
 						knownvalue.StringExact("Terraform"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("license_template"),
 						knownvalue.StringExact("mpl-2.0"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("allow_squash_merge"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("allow_merge_commit"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("allow_rebase_merge"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("allow_auto_merge"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("delete_branch_on_merge"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("squash_merge_commit_title"),
 						knownvalue.StringExact("COMMIT_OR_PR_TITLE"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("squash_merge_commit_message"),
 						knownvalue.StringExact("COMMIT_MESSAGES"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("merge_commit_message"),
 						knownvalue.StringExact("PR_BODY"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("merge_commit_title"),
 						knownvalue.StringExact("PR_TITLE"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_all_arguments",
+						"github_repository.test",
 						tfjsonpath.New("is_template"),
 						knownvalue.Bool(false),
 					),
 				},
 			},
 			{
-				ResourceName:      "github_repository.test_all_arguments",
+				ResourceName:      "github_repository.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -301,7 +301,7 @@ func TestAccRepositoryResourceAllArguments(t *testing.T) {
 			{
 				Config: providerConfig + testAccRepositoryResourceAllArgumentsConfig(repoName+"-updated"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("github_repository.test_all_arguments", "name", repoName+"-updated"),
+					resource.TestCheckResourceAttr("github_repository.test", "name", repoName+"-updated"),
 				),
 			},
 		},
@@ -312,7 +312,7 @@ func TestAccRepositoryResourceAllArguments(t *testing.T) {
 
 func testAccRepositoryResourceNoMergeCommitsConfig(name string) string {
 	return fmt.Sprintf(`
-resource "github_repository" "test_no_merge_commits" {
+resource "github_repository" "test" {
   name                     = %[1]q
 
   allow_auto_merge            = true
@@ -350,104 +350,104 @@ func TestAccRepositoryResourceNoMergeCommits(t *testing.T) {
 				Config: providerConfig + testAccRepositoryResourceNoMergeCommitsConfig(repoName),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("name"),
 						knownvalue.StringExact(repoName),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("description"),
 						knownvalue.StringExact("This is a description."),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("homepage"),
 						knownvalue.StringExact("https://github.com"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("private"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("has_issues"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("has_projects"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("has_wiki"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("has_discussions"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("auto_init"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("gitignore_template"),
 						knownvalue.StringExact("Terraform"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("license_template"),
 						knownvalue.StringExact("mpl-2.0"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("allow_squash_merge"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("allow_merge_commit"),
 						knownvalue.Bool(false),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("allow_rebase_merge"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("allow_auto_merge"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("delete_branch_on_merge"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("squash_merge_commit_title"),
 						knownvalue.StringExact("COMMIT_OR_PR_TITLE"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("squash_merge_commit_message"),
 						knownvalue.StringExact("COMMIT_MESSAGES"),
 					),
 					statecheck.ExpectKnownValue(
-						"github_repository.test_no_merge_commits",
+						"github_repository.test",
 						tfjsonpath.New("is_template"),
 						knownvalue.Bool(false),
 					),
 				},
 			},
 			{
-				ResourceName:      "github_repository.test_no_merge_commits",
+				ResourceName:      "github_repository.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -459,7 +459,7 @@ func TestAccRepositoryResourceNoMergeCommits(t *testing.T) {
 			{
 				Config: providerConfig + testAccRepositoryResourceNoMergeCommitsConfig(repoName+"-updated"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("github_repository.test_no_merge_commits", "name", repoName+"-updated"),
+					resource.TestCheckResourceAttr("github_repository.test", "name", repoName+"-updated"),
 				),
 			},
 		},
@@ -468,7 +468,7 @@ func TestAccRepositoryResourceNoMergeCommits(t *testing.T) {
 
 func testAccRepositoryResourceTemplateOwnerDefaultConfig(name string) string {
 	return fmt.Sprintf(`
-resource "github_repository" "test_template_owner" {
+resource "github_repository" "test" {
   name                = %[1]q
   template_repository = "terraform-module-template"
 
@@ -492,20 +492,20 @@ func TestAccRepositoryResourceTemplateOwnerDefault(t *testing.T) {
 				Config: providerConfig + testAccRepositoryResourceTemplateOwnerDefaultConfig(repoName),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(
-						"github_repository.test_template_owner",
+						"github_repository.test",
 						tfjsonpath.New("template_repository"),
 						knownvalue.StringExact("terraform-module-template"),
 					),
 					// template_owner in state should be set to the provider owner (depends on your real owner)
 					statecheck.ExpectKnownValue(
-						"github_repository.test_template_owner",
+						"github_repository.test",
 						tfjsonpath.New("template_owner"),
 						knownvalue.NotNull(), // or StringExact(provider owner) if you want to be strict
 					),
 				},
 			},
 			{
-				ResourceName:      "github_repository.test_template_owner",
+				ResourceName:      "github_repository.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -517,7 +517,7 @@ func TestAccRepositoryResourceTemplateOwnerDefault(t *testing.T) {
 			{
 				Config: providerConfig + testAccRepositoryResourceTemplateOwnerDefaultConfig(repoName+"-updated"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("github_repository.test_template_owner", "name", repoName+"-updated"),
+					resource.TestCheckResourceAttr("github_repository.test", "name", repoName+"-updated"),
 				),
 			},
 		},
