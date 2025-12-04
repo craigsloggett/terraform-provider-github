@@ -56,6 +56,10 @@ type GitHubRepositoryResourceModel struct {
 	MergeCommitMessage       types.String `tfsdk:"merge_commit_message"`
 	IsTemplate               types.Bool   `tfsdk:"is_template"`
 
+	// Template Arguments
+	TemplateRepository types.String `tfsdk:"template_repository"`
+	TemplateOwner      types.String `tfsdk:"template_owner"`
+
 	// Attributes
 	ID     types.Int64  `tfsdk:"id"`
 	NodeID types.String `tfsdk:"node_id"`
@@ -324,6 +328,23 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
+			// Template Arguments
+			"template_repository": schema.StringAttribute{
+				Description:         "The name of the template repository to use.",
+				MarkdownDescription: "The name of the template repository to use.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"template_owner": schema.StringAttribute{
+				Description:         "The owner of the template repository.",
+				MarkdownDescription: "The owner of the template repository.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			// Attributes

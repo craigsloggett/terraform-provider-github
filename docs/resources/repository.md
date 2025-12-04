@@ -94,6 +94,8 @@ resource "github_repository" "example" {
 	`PR_TITLE` defaults to the pull request's title.
 
 	`COMMIT_OR_PR_TITLE` defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit).
+- `template_owner` (String) The owner of the template repository.
+- `template_repository` (String) The name of the template repository to use.
 
 ### Read-Only
 
