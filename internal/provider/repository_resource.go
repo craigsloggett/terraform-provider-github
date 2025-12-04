@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -239,6 +240,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 	` + "`" + `COMMIT_OR_PR_TITLE` + "`" + ` defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit).`,
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("COMMIT_OR_PR_TITLE"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_TITLE", "COMMIT_OR_PR_TITLE"),
 				},
@@ -267,6 +269,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 	` + "`" + `BLANK` + "`" + ` defaults to a blank commit message.`,
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("COMMIT_MESSAGES"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_BODY", "COMMIT_MESSAGES", "BLANK"),
 				},
@@ -291,6 +294,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 	` + "`" + `MERGE_MESSAGE` + "`" + ` defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).`,
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("MERGE_MESSAGE"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_TITLE", "MERGE_MESSAGE"),
 				},
@@ -319,6 +323,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 	` + "`" + `BLANK` + "`" + ` defaults to a blank commit message.`,
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("PR_TITLE"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_BODY", "PR_TITLE", "BLANK"),
 				},
