@@ -449,7 +449,7 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 
 		templateReq := &github.TemplateRepoRequest{
 			Name:        github.Ptr(model.Name.ValueString()),
-			Owner:       github.Ptr(organization),
+			Owner:       github.Ptr(r.owner),
 			Description: github.Ptr(model.Description.ValueString()),
 			Private:     github.Ptr(model.Private.ValueBool()),
 		}
