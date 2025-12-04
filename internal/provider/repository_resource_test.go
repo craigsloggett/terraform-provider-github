@@ -36,6 +36,9 @@ resource "github_repository" "test" {
   private                     = false
   squash_merge_commit_message = "COMMIT_MESSAGES"
   squash_merge_commit_title   = "COMMIT_OR_PR_TITLE"
+
+  template_repository = "terraform-module-template"
+  template_owner      = "craigsloggett-lab"
 }
 `, name)
 }

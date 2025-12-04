@@ -86,6 +86,11 @@ func (m *GitHubRepositoryResourceModel) UpdateFromAPI(repo *github.Repository) {
 	m.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	m.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
 	m.IsTemplate = types.BoolValue(repo.GetIsTemplate())
+	// Template Arguments
+	if repo.TemplateRepository != nil {
+		m.TemplateRepository = types.StringValue(repo.TemplateRepository.GetName())
+		m.TemplateOwner = types.StringValue(repo.TemplateRepository.Owner.GetLogin())
+	}
 	// Attributes
 	m.ID = types.Int64Value(repo.GetID())
 	m.NodeID = types.StringValue(repo.GetNodeID())
@@ -494,8 +499,6 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		}
 	}
 
-	model.UpdateFromAPI(repo)
-
 	if !model.TemplateRepository.IsNull() {
 		// This repository object is missing AutoInit, GitignoreTemplate, and
 		// LicenseTemplate since they are ignored during Edit.
@@ -529,8 +532,9 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 			)
 			return
 		}
-		model.UpdateFromAPI(repo)
 	}
+
+	model.UpdateFromAPI(repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
