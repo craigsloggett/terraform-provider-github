@@ -431,41 +431,106 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	repository := &github.Repository{
-		Name:                     github.Ptr(model.Name.ValueString()),
-		Description:              github.Ptr(model.Description.ValueString()),
-		Homepage:                 github.Ptr(model.Homepage.ValueString()),
-		Private:                  github.Ptr(model.Private.ValueBool()),
-		HasIssues:                github.Ptr(model.HasIssues.ValueBool()),
-		HasProjects:              github.Ptr(model.HasProjects.ValueBool()),
-		HasWiki:                  github.Ptr(model.HasWiki.ValueBool()),
-		HasDiscussions:           github.Ptr(model.HasDiscussions.ValueBool()),
-		AutoInit:                 github.Ptr(model.AutoInit.ValueBool()),
-		GitignoreTemplate:        github.Ptr(model.GitignoreTemplate.ValueString()),
-		LicenseTemplate:          github.Ptr(model.LicenseTemplate.ValueString()),
-		AllowSquashMerge:         github.Ptr(model.AllowSquashMerge.ValueBool()),
-		AllowMergeCommit:         github.Ptr(model.AllowMergeCommit.ValueBool()),
-		AllowRebaseMerge:         github.Ptr(model.AllowRebaseMerge.ValueBool()),
-		AllowAutoMerge:           github.Ptr(model.AllowAutoMerge.ValueBool()),
-		DeleteBranchOnMerge:      github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
-		SquashMergeCommitTitle:   github.Ptr(model.SquashMergeCommitTitle.ValueString()),
-		SquashMergeCommitMessage: github.Ptr(model.SquashMergeCommitMessage.ValueString()),
-		MergeCommitTitle:         github.Ptr(model.MergeCommitTitle.ValueString()),
-		MergeCommitMessage:       github.Ptr(model.MergeCommitMessage.ValueString()),
-		IsTemplate:               github.Ptr(model.IsTemplate.ValueBool()),
-	}
+	var repo *github.Repository
+	var err error
 
-	repo, _, err := client.Repositories.Create(ctx, organization, repository)
+	if !model.TemplateRepository.IsNull() {
+		templateRepo := model.TemplateRepository.ValueString()
+		templateOwner := model.TemplateOwner.ValueString()
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Communicating with the GitHub API",
-			fmt.Sprintf("Unable to create the repository, got error: %s", err),
-		)
-		return
+		if templateOwner == "" {
+			templateOwner = r.owner
+		}
+
+		templateReq := &github.TemplateRepoRequest{
+			Name:        github.Ptr(model.Name.ValueString()),
+			Owner:       github.Ptr(organization),
+			Description: github.Ptr(model.Description.ValueString()),
+			Private:     github.Ptr(model.Private.ValueBool()),
+		}
+
+		repo, _, err = client.Repositories.CreateFromTemplate(ctx, templateOwner, templateRepo, templateReq)
+
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Creating Repository from Template",
+				fmt.Sprintf("Unable to create the repository from template %s/%s, got error: %s", templateOwner, templateRepo, err),
+			)
+			return
+		}
+	} else {
+		repository := &github.Repository{
+			Name:                     github.Ptr(model.Name.ValueString()),
+			Description:              github.Ptr(model.Description.ValueString()),
+			Homepage:                 github.Ptr(model.Homepage.ValueString()),
+			Private:                  github.Ptr(model.Private.ValueBool()),
+			HasIssues:                github.Ptr(model.HasIssues.ValueBool()),
+			HasProjects:              github.Ptr(model.HasProjects.ValueBool()),
+			HasWiki:                  github.Ptr(model.HasWiki.ValueBool()),
+			HasDiscussions:           github.Ptr(model.HasDiscussions.ValueBool()),
+			AutoInit:                 github.Ptr(model.AutoInit.ValueBool()),
+			GitignoreTemplate:        github.Ptr(model.GitignoreTemplate.ValueString()),
+			LicenseTemplate:          github.Ptr(model.LicenseTemplate.ValueString()),
+			AllowSquashMerge:         github.Ptr(model.AllowSquashMerge.ValueBool()),
+			AllowMergeCommit:         github.Ptr(model.AllowMergeCommit.ValueBool()),
+			AllowRebaseMerge:         github.Ptr(model.AllowRebaseMerge.ValueBool()),
+			AllowAutoMerge:           github.Ptr(model.AllowAutoMerge.ValueBool()),
+			DeleteBranchOnMerge:      github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
+			SquashMergeCommitTitle:   github.Ptr(model.SquashMergeCommitTitle.ValueString()),
+			SquashMergeCommitMessage: github.Ptr(model.SquashMergeCommitMessage.ValueString()),
+			MergeCommitTitle:         github.Ptr(model.MergeCommitTitle.ValueString()),
+			MergeCommitMessage:       github.Ptr(model.MergeCommitMessage.ValueString()),
+			IsTemplate:               github.Ptr(model.IsTemplate.ValueBool()),
+		}
+
+		repo, _, err = client.Repositories.Create(ctx, organization, repository)
+
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Creating Repository",
+				fmt.Sprintf("Unable to create the repository, got error: %s", err),
+			)
+			return
+		}
 	}
 
 	model.UpdateFromAPI(repo)
+
+	if !model.TemplateRepository.IsNull() {
+		// This repository object is missing AutoInit, GitignoreTemplate, and
+		// LicenseTemplate since they are ignored during Edit.
+		repository := &github.Repository{
+			Name:                     github.Ptr(model.Name.ValueString()),
+			Description:              github.Ptr(model.Description.ValueString()),
+			Homepage:                 github.Ptr(model.Homepage.ValueString()),
+			Private:                  github.Ptr(model.Private.ValueBool()),
+			HasIssues:                github.Ptr(model.HasIssues.ValueBool()),
+			HasProjects:              github.Ptr(model.HasProjects.ValueBool()),
+			HasWiki:                  github.Ptr(model.HasWiki.ValueBool()),
+			HasDiscussions:           github.Ptr(model.HasDiscussions.ValueBool()),
+			AllowSquashMerge:         github.Ptr(model.AllowSquashMerge.ValueBool()),
+			AllowMergeCommit:         github.Ptr(model.AllowMergeCommit.ValueBool()),
+			AllowRebaseMerge:         github.Ptr(model.AllowRebaseMerge.ValueBool()),
+			AllowAutoMerge:           github.Ptr(model.AllowAutoMerge.ValueBool()),
+			DeleteBranchOnMerge:      github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
+			SquashMergeCommitTitle:   github.Ptr(model.SquashMergeCommitTitle.ValueString()),
+			SquashMergeCommitMessage: github.Ptr(model.SquashMergeCommitMessage.ValueString()),
+			MergeCommitTitle:         github.Ptr(model.MergeCommitTitle.ValueString()),
+			MergeCommitMessage:       github.Ptr(model.MergeCommitMessage.ValueString()),
+			IsTemplate:               github.Ptr(model.IsTemplate.ValueBool()),
+		}
+
+		repo, _, err = client.Repositories.Edit(ctx, r.owner, model.Name.ValueString(), repository)
+
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Updating Repository Settings After Template Creation",
+				fmt.Sprintf("Repository created, but failed to apply settings: %s", err),
+			)
+			return
+		}
+		model.UpdateFromAPI(repo)
+	}
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -501,9 +566,6 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		HasProjects:              github.Ptr(model.HasProjects.ValueBool()),
 		HasWiki:                  github.Ptr(model.HasWiki.ValueBool()),
 		HasDiscussions:           github.Ptr(model.HasDiscussions.ValueBool()),
-		AutoInit:                 github.Ptr(model.AutoInit.ValueBool()),
-		GitignoreTemplate:        github.Ptr(model.GitignoreTemplate.ValueString()),
-		LicenseTemplate:          github.Ptr(model.LicenseTemplate.ValueString()),
 		AllowSquashMerge:         github.Ptr(model.AllowSquashMerge.ValueBool()),
 		AllowMergeCommit:         github.Ptr(model.AllowMergeCommit.ValueBool()),
 		AllowRebaseMerge:         github.Ptr(model.AllowRebaseMerge.ValueBool()),
