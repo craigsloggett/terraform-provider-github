@@ -453,9 +453,8 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 			templateOwner = owner
 		}
 
-		// Unknown or null, use provider configuration for the API call and update the state model.
+		// Unknown or null, update the state model to match the provider configured `owner`.
 		if model.TemplateOwner.IsUnknown() || model.TemplateOwner.IsNull() {
-			templateOwner = owner
 			model.TemplateOwner = types.StringValue(templateOwner)
 		}
 
