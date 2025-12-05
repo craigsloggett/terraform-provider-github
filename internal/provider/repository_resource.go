@@ -93,6 +93,51 @@ func (m *GitHubRepositoryResourceModel) UpdateFromAPI(repo *github.Repository) {
 	m.NodeID = types.StringValue(repo.GetNodeID())
 }
 
+type expansionMode int
+
+const (
+	expandForCreate expansionMode = iota
+	expandForUpdate
+)
+
+func expandRepository(model GitHubRepositoryResourceModel, mode expansionMode) *github.Repository {
+	repo := &github.Repository{
+		Name:                github.Ptr(model.Name.ValueString()),
+		Description:         github.Ptr(model.Description.ValueString()),
+		Homepage:            github.Ptr(model.Homepage.ValueString()),
+		Private:             github.Ptr(model.Private.ValueBool()),
+		HasIssues:           github.Ptr(model.HasIssues.ValueBool()),
+		HasProjects:         github.Ptr(model.HasProjects.ValueBool()),
+		HasWiki:             github.Ptr(model.HasWiki.ValueBool()),
+		HasDiscussions:      github.Ptr(model.HasDiscussions.ValueBool()),
+		AllowSquashMerge:    github.Ptr(model.AllowSquashMerge.ValueBool()),
+		AllowMergeCommit:    github.Ptr(model.AllowMergeCommit.ValueBool()),
+		AllowRebaseMerge:    github.Ptr(model.AllowRebaseMerge.ValueBool()),
+		AllowAutoMerge:      github.Ptr(model.AllowAutoMerge.ValueBool()),
+		DeleteBranchOnMerge: github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
+		IsTemplate:          github.Ptr(model.IsTemplate.ValueBool()),
+	}
+
+	// Create is the only time you can successfully pass these parameters into the GitHub API.
+	if mode == expandForCreate {
+		repo.AutoInit = github.Ptr(model.AutoInit.ValueBool())
+		repo.GitignoreTemplate = github.Ptr(model.GitignoreTemplate.ValueString())
+		repo.LicenseTemplate = github.Ptr(model.LicenseTemplate.ValueString())
+	}
+
+	if model.AllowSquashMerge.ValueBool() {
+		repo.SquashMergeCommitTitle = github.Ptr(model.SquashMergeCommitTitle.ValueString())
+		repo.SquashMergeCommitMessage = github.Ptr(model.SquashMergeCommitMessage.ValueString())
+	}
+
+	if model.AllowMergeCommit.ValueBool() {
+		repo.MergeCommitTitle = github.Ptr(model.MergeCommitTitle.ValueString())
+		repo.MergeCommitMessage = github.Ptr(model.MergeCommitMessage.ValueString())
+	}
+
+	return repo
+}
+
 func (r *GitHubRepositoryResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repository"
 }
@@ -475,35 +520,7 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 			return
 		}
 	} else {
-		repository := &github.Repository{
-			Name:                github.Ptr(model.Name.ValueString()),
-			Description:         github.Ptr(model.Description.ValueString()),
-			Homepage:            github.Ptr(model.Homepage.ValueString()),
-			Private:             github.Ptr(model.Private.ValueBool()),
-			HasIssues:           github.Ptr(model.HasIssues.ValueBool()),
-			HasProjects:         github.Ptr(model.HasProjects.ValueBool()),
-			HasWiki:             github.Ptr(model.HasWiki.ValueBool()),
-			HasDiscussions:      github.Ptr(model.HasDiscussions.ValueBool()),
-			AutoInit:            github.Ptr(model.AutoInit.ValueBool()),
-			GitignoreTemplate:   github.Ptr(model.GitignoreTemplate.ValueString()),
-			LicenseTemplate:     github.Ptr(model.LicenseTemplate.ValueString()),
-			AllowSquashMerge:    github.Ptr(model.AllowSquashMerge.ValueBool()),
-			AllowMergeCommit:    github.Ptr(model.AllowMergeCommit.ValueBool()),
-			AllowRebaseMerge:    github.Ptr(model.AllowRebaseMerge.ValueBool()),
-			AllowAutoMerge:      github.Ptr(model.AllowAutoMerge.ValueBool()),
-			DeleteBranchOnMerge: github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
-			IsTemplate:          github.Ptr(model.IsTemplate.ValueBool()),
-		}
-
-		if model.AllowSquashMerge.ValueBool() {
-			repository.SquashMergeCommitTitle = github.Ptr(model.SquashMergeCommitTitle.ValueString())
-			repository.SquashMergeCommitMessage = github.Ptr(model.SquashMergeCommitMessage.ValueString())
-		}
-
-		if model.AllowMergeCommit.ValueBool() {
-			repository.MergeCommitTitle = github.Ptr(model.MergeCommitTitle.ValueString())
-			repository.MergeCommitMessage = github.Ptr(model.MergeCommitMessage.ValueString())
-		}
+		repository := expandRepository(model, expandForCreate)
 
 		repo, _, err = client.Repositories.Create(ctx, organization, repository)
 
@@ -517,34 +534,7 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	if !model.TemplateRepository.IsNull() {
-		// This repository object is missing AutoInit, GitignoreTemplate, and
-		// LicenseTemplate since they are ignored during Edit.
-		repository := &github.Repository{
-			Name:                github.Ptr(model.Name.ValueString()),
-			Description:         github.Ptr(model.Description.ValueString()),
-			Homepage:            github.Ptr(model.Homepage.ValueString()),
-			Private:             github.Ptr(model.Private.ValueBool()),
-			HasIssues:           github.Ptr(model.HasIssues.ValueBool()),
-			HasProjects:         github.Ptr(model.HasProjects.ValueBool()),
-			HasWiki:             github.Ptr(model.HasWiki.ValueBool()),
-			HasDiscussions:      github.Ptr(model.HasDiscussions.ValueBool()),
-			AllowSquashMerge:    github.Ptr(model.AllowSquashMerge.ValueBool()),
-			AllowMergeCommit:    github.Ptr(model.AllowMergeCommit.ValueBool()),
-			AllowRebaseMerge:    github.Ptr(model.AllowRebaseMerge.ValueBool()),
-			AllowAutoMerge:      github.Ptr(model.AllowAutoMerge.ValueBool()),
-			DeleteBranchOnMerge: github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
-			IsTemplate:          github.Ptr(model.IsTemplate.ValueBool()),
-		}
-
-		if model.AllowSquashMerge.ValueBool() {
-			repository.SquashMergeCommitTitle = github.Ptr(model.SquashMergeCommitTitle.ValueString())
-			repository.SquashMergeCommitMessage = github.Ptr(model.SquashMergeCommitMessage.ValueString())
-		}
-
-		if model.AllowMergeCommit.ValueBool() {
-			repository.MergeCommitTitle = github.Ptr(model.MergeCommitTitle.ValueString())
-			repository.MergeCommitMessage = github.Ptr(model.MergeCommitMessage.ValueString())
-		}
+		repository := expandRepository(model, expandForUpdate)
 
 		repo, _, err = client.Repositories.Edit(ctx, r.owner, model.Name.ValueString(), repository)
 
@@ -594,32 +584,7 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	repository := &github.Repository{
-		Name:                github.Ptr(model.Name.ValueString()),
-		Description:         github.Ptr(model.Description.ValueString()),
-		Homepage:            github.Ptr(model.Homepage.ValueString()),
-		Private:             github.Ptr(model.Private.ValueBool()),
-		HasIssues:           github.Ptr(model.HasIssues.ValueBool()),
-		HasProjects:         github.Ptr(model.HasProjects.ValueBool()),
-		HasWiki:             github.Ptr(model.HasWiki.ValueBool()),
-		HasDiscussions:      github.Ptr(model.HasDiscussions.ValueBool()),
-		AllowSquashMerge:    github.Ptr(model.AllowSquashMerge.ValueBool()),
-		AllowMergeCommit:    github.Ptr(model.AllowMergeCommit.ValueBool()),
-		AllowRebaseMerge:    github.Ptr(model.AllowRebaseMerge.ValueBool()),
-		AllowAutoMerge:      github.Ptr(model.AllowAutoMerge.ValueBool()),
-		DeleteBranchOnMerge: github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
-		IsTemplate:          github.Ptr(model.IsTemplate.ValueBool()),
-	}
-
-	if model.AllowSquashMerge.ValueBool() {
-		repository.SquashMergeCommitTitle = github.Ptr(model.SquashMergeCommitTitle.ValueString())
-		repository.SquashMergeCommitMessage = github.Ptr(model.SquashMergeCommitMessage.ValueString())
-	}
-
-	if model.AllowMergeCommit.ValueBool() {
-		repository.MergeCommitTitle = github.Ptr(model.MergeCommitTitle.ValueString())
-		repository.MergeCommitMessage = github.Ptr(model.MergeCommitMessage.ValueString())
-	}
+	repository := expandRepository(model, expandForUpdate)
 
 	repo, _, err := client.Repositories.Edit(ctx, owner, state.Name.ValueString(), repository)
 
