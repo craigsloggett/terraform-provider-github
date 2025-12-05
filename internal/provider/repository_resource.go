@@ -23,14 +23,12 @@ import (
 var _ resource.Resource = &GitHubRepositoryResource{}
 var _ resource.ResourceWithImportState = &GitHubRepositoryResource{}
 
+// Types
+
 type GitHubRepositoryResource struct {
 	client       *github.Client
 	owner        string
 	organization string
-}
-
-func NewGitHubRepositoryResource() resource.Resource {
-	return &GitHubRepositoryResource{}
 }
 
 type GitHubRepositoryResourceModel struct {
@@ -66,91 +64,13 @@ type GitHubRepositoryResourceModel struct {
 	NodeID types.String `tfsdk:"node_id"`
 }
 
-type expansionMode int
+// Constructor
 
-const (
-	expandForCreate expansionMode = iota
-	expandForUpdate
-)
-
-func expandRepository(model GitHubRepositoryResourceModel, mode expansionMode) *github.Repository {
-	repo := &github.Repository{
-		Name:                github.Ptr(model.Name.ValueString()),
-		Description:         github.Ptr(model.Description.ValueString()),
-		Homepage:            github.Ptr(model.Homepage.ValueString()),
-		Private:             github.Ptr(model.Private.ValueBool()),
-		HasIssues:           github.Ptr(model.HasIssues.ValueBool()),
-		HasProjects:         github.Ptr(model.HasProjects.ValueBool()),
-		HasWiki:             github.Ptr(model.HasWiki.ValueBool()),
-		HasDiscussions:      github.Ptr(model.HasDiscussions.ValueBool()),
-		AllowSquashMerge:    github.Ptr(model.AllowSquashMerge.ValueBool()),
-		AllowMergeCommit:    github.Ptr(model.AllowMergeCommit.ValueBool()),
-		AllowRebaseMerge:    github.Ptr(model.AllowRebaseMerge.ValueBool()),
-		AllowAutoMerge:      github.Ptr(model.AllowAutoMerge.ValueBool()),
-		DeleteBranchOnMerge: github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
-		IsTemplate:          github.Ptr(model.IsTemplate.ValueBool()),
-	}
-
-	// Create is the only time you can successfully pass these parameters into the GitHub API.
-	if mode == expandForCreate {
-		repo.AutoInit = github.Ptr(model.AutoInit.ValueBool())
-		repo.GitignoreTemplate = github.Ptr(model.GitignoreTemplate.ValueString())
-		repo.LicenseTemplate = github.Ptr(model.LicenseTemplate.ValueString())
-	}
-
-	if model.AllowSquashMerge.ValueBool() {
-		repo.SquashMergeCommitTitle = github.Ptr(model.SquashMergeCommitTitle.ValueString())
-		repo.SquashMergeCommitMessage = github.Ptr(model.SquashMergeCommitMessage.ValueString())
-	}
-
-	if model.AllowMergeCommit.ValueBool() {
-		repo.MergeCommitTitle = github.Ptr(model.MergeCommitTitle.ValueString())
-		repo.MergeCommitMessage = github.Ptr(model.MergeCommitMessage.ValueString())
-	}
-
-	return repo
+func NewGitHubRepositoryResource() resource.Resource {
+	return &GitHubRepositoryResource{}
 }
 
-func flattenRepository(model *GitHubRepositoryResourceModel, repo *github.Repository) {
-	// IDs
-	model.ID = types.Int64Value(repo.GetID())
-	model.NodeID = types.StringValue(repo.GetNodeID())
-	// Arguments
-	model.Name = types.StringValue(repo.GetName())
-	model.Description = types.StringValue(repo.GetDescription())
-	model.Homepage = types.StringValue(repo.GetHomepage())
-	model.Private = types.BoolValue(repo.GetPrivate())
-	model.HasIssues = types.BoolValue(repo.GetHasIssues())
-	model.HasProjects = types.BoolValue(repo.GetHasProjects())
-	model.HasWiki = types.BoolValue(repo.GetHasWiki())
-	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
-	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
-	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
-	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
-	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
-	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
-	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
-	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
-	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
-	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
-	// Attributes
-	model.Private = types.BoolValue(repo.GetPrivate())
-	model.HasIssues = types.BoolValue(repo.GetHasIssues())
-	model.HasProjects = types.BoolValue(repo.GetHasProjects())
-	model.HasWiki = types.BoolValue(repo.GetHasWiki())
-	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
-	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
-	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
-	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
-	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
-	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
-	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
-	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
-	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
-	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
-}
+// Resource Definition
 
 func (r *GitHubRepositoryResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repository"
@@ -457,6 +377,8 @@ func (r *GitHubRepositoryResource) Configure(_ context.Context, req resource.Con
 	r.organization = config.Organization
 }
 
+// Resource Lifecycle
+
 func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var model GitHubRepositoryResourceModel
 
@@ -632,4 +554,92 @@ func (r *GitHubRepositoryResource) ImportState(ctx context.Context, req resource
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
+}
+
+// Helpers
+
+type expansionMode int
+
+const (
+	expandForCreate expansionMode = iota
+	expandForUpdate
+)
+
+func expandRepository(model GitHubRepositoryResourceModel, mode expansionMode) *github.Repository {
+	repo := &github.Repository{
+		Name:                github.Ptr(model.Name.ValueString()),
+		Description:         github.Ptr(model.Description.ValueString()),
+		Homepage:            github.Ptr(model.Homepage.ValueString()),
+		Private:             github.Ptr(model.Private.ValueBool()),
+		HasIssues:           github.Ptr(model.HasIssues.ValueBool()),
+		HasProjects:         github.Ptr(model.HasProjects.ValueBool()),
+		HasWiki:             github.Ptr(model.HasWiki.ValueBool()),
+		HasDiscussions:      github.Ptr(model.HasDiscussions.ValueBool()),
+		AllowSquashMerge:    github.Ptr(model.AllowSquashMerge.ValueBool()),
+		AllowMergeCommit:    github.Ptr(model.AllowMergeCommit.ValueBool()),
+		AllowRebaseMerge:    github.Ptr(model.AllowRebaseMerge.ValueBool()),
+		AllowAutoMerge:      github.Ptr(model.AllowAutoMerge.ValueBool()),
+		DeleteBranchOnMerge: github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
+		IsTemplate:          github.Ptr(model.IsTemplate.ValueBool()),
+	}
+
+	// Create is the only time you can successfully pass these parameters into the GitHub API.
+	if mode == expandForCreate {
+		repo.AutoInit = github.Ptr(model.AutoInit.ValueBool())
+		repo.GitignoreTemplate = github.Ptr(model.GitignoreTemplate.ValueString())
+		repo.LicenseTemplate = github.Ptr(model.LicenseTemplate.ValueString())
+	}
+
+	if model.AllowSquashMerge.ValueBool() {
+		repo.SquashMergeCommitTitle = github.Ptr(model.SquashMergeCommitTitle.ValueString())
+		repo.SquashMergeCommitMessage = github.Ptr(model.SquashMergeCommitMessage.ValueString())
+	}
+
+	if model.AllowMergeCommit.ValueBool() {
+		repo.MergeCommitTitle = github.Ptr(model.MergeCommitTitle.ValueString())
+		repo.MergeCommitMessage = github.Ptr(model.MergeCommitMessage.ValueString())
+	}
+
+	return repo
+}
+
+func flattenRepository(model *GitHubRepositoryResourceModel, repo *github.Repository) {
+	// IDs
+	model.ID = types.Int64Value(repo.GetID())
+	model.NodeID = types.StringValue(repo.GetNodeID())
+	// Arguments
+	model.Name = types.StringValue(repo.GetName())
+	model.Description = types.StringValue(repo.GetDescription())
+	model.Homepage = types.StringValue(repo.GetHomepage())
+	model.Private = types.BoolValue(repo.GetPrivate())
+	model.HasIssues = types.BoolValue(repo.GetHasIssues())
+	model.HasProjects = types.BoolValue(repo.GetHasProjects())
+	model.HasWiki = types.BoolValue(repo.GetHasWiki())
+	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
+	// Attributes
+	model.Private = types.BoolValue(repo.GetPrivate())
+	model.HasIssues = types.BoolValue(repo.GetHasIssues())
+	model.HasProjects = types.BoolValue(repo.GetHasProjects())
+	model.HasWiki = types.BoolValue(repo.GetHasWiki())
+	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
 }
