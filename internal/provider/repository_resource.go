@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -22,14 +23,12 @@ import (
 var _ resource.Resource = &GitHubRepositoryResource{}
 var _ resource.ResourceWithImportState = &GitHubRepositoryResource{}
 
+// Types
+
 type GitHubRepositoryResource struct {
 	client       *github.Client
 	owner        string
 	organization string
-}
-
-func NewGitHubRepositoryResource() resource.Resource {
-	return &GitHubRepositoryResource{}
 }
 
 type GitHubRepositoryResourceModel struct {
@@ -56,36 +55,22 @@ type GitHubRepositoryResourceModel struct {
 	MergeCommitMessage       types.String `tfsdk:"merge_commit_message"`
 	IsTemplate               types.Bool   `tfsdk:"is_template"`
 
+	// Template Arguments
+	TemplateRepository types.String `tfsdk:"template_repository"`
+	TemplateOwner      types.String `tfsdk:"template_owner"`
+
 	// Attributes
 	ID     types.Int64  `tfsdk:"id"`
 	NodeID types.String `tfsdk:"node_id"`
 }
 
-// UpdateFromAPI populates the model with data from the GitHub API repository object.
-func (m *GitHubRepositoryResourceModel) UpdateFromAPI(repo *github.Repository) {
-	// Arguments
-	m.Name = types.StringValue(repo.GetName())
-	m.Description = types.StringValue(repo.GetDescription())
-	m.Homepage = types.StringValue(repo.GetHomepage())
-	m.Private = types.BoolValue(repo.GetPrivate())
-	m.HasIssues = types.BoolValue(repo.GetHasIssues())
-	m.HasProjects = types.BoolValue(repo.GetHasProjects())
-	m.HasWiki = types.BoolValue(repo.GetHasWiki())
-	m.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
-	m.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
-	m.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
-	m.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
-	m.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
-	m.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
-	m.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
-	m.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
-	m.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
-	m.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	m.IsTemplate = types.BoolValue(repo.GetIsTemplate())
-	// Attributes
-	m.ID = types.Int64Value(repo.GetID())
-	m.NodeID = types.StringValue(repo.GetNodeID())
+// Constructor
+
+func NewGitHubRepositoryResource() resource.Resource {
+	return &GitHubRepositoryResource{}
 }
+
+// Resource Definition
 
 func (r *GitHubRepositoryResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repository"
@@ -146,6 +131,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				MarkdownDescription: "Indicates if the repository has wiki enabled.",
 				Optional:            true,
 				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},
@@ -230,6 +216,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 	` + "`" + `COMMIT_OR_PR_TITLE` + "`" + ` defaults to the commit's title (if only one commit) or the pull request's title (when more than one commit).`,
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("COMMIT_OR_PR_TITLE"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_TITLE", "COMMIT_OR_PR_TITLE"),
 				},
@@ -258,6 +245,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 	` + "`" + `BLANK` + "`" + ` defaults to a blank commit message.`,
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("COMMIT_MESSAGES"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_BODY", "COMMIT_MESSAGES", "BLANK"),
 				},
@@ -282,6 +270,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 	` + "`" + `MERGE_MESSAGE` + "`" + ` defaults to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).`,
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("MERGE_MESSAGE"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_TITLE", "MERGE_MESSAGE"),
 				},
@@ -310,6 +299,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 	` + "`" + `BLANK` + "`" + ` defaults to a blank commit message.`,
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("PR_TITLE"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("PR_BODY", "PR_TITLE", "BLANK"),
 				},
@@ -324,6 +314,24 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
+			// Template Arguments
+			"template_repository": schema.StringAttribute{
+				Description:         "The name of the template repository to use.",
+				MarkdownDescription: "The name of the template repository to use.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"template_owner": schema.StringAttribute{
+				Description:         "The owner of the template repository.",
+				MarkdownDescription: "The owner of the template repository.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			// Attributes
@@ -369,20 +377,20 @@ func (r *GitHubRepositoryResource) Configure(_ context.Context, req resource.Con
 	r.organization = config.Organization
 }
 
+// Resource Lifecycle
+
 func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var model GitHubRepositoryResourceModel
 
 	client := r.client
 
-	// Read Terraform prior state data into the model.
+	// Read Terraform State
 	resp.Diagnostics.Append(req.State.Get(ctx, &model)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	repo, _, err := client.Repositories.GetByID(ctx, model.ID.ValueInt64())
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Communicating with the GitHub API",
@@ -391,7 +399,7 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	model.UpdateFromAPI(repo)
+	flattenRepository(&model, repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -400,51 +408,76 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var model GitHubRepositoryResourceModel
 
-	client := r.client
-	organization := r.organization
-
-	// Read Terraform plan data into the model.
+	// Read Plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &model)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	repository := &github.Repository{
-		Name:                     github.Ptr(model.Name.ValueString()),
-		Description:              github.Ptr(model.Description.ValueString()),
-		Homepage:                 github.Ptr(model.Homepage.ValueString()),
-		Private:                  github.Ptr(model.Private.ValueBool()),
-		HasIssues:                github.Ptr(model.HasIssues.ValueBool()),
-		HasProjects:              github.Ptr(model.HasProjects.ValueBool()),
-		HasWiki:                  github.Ptr(model.HasWiki.ValueBool()),
-		HasDiscussions:           github.Ptr(model.HasDiscussions.ValueBool()),
-		AutoInit:                 github.Ptr(model.AutoInit.ValueBool()),
-		GitignoreTemplate:        github.Ptr(model.GitignoreTemplate.ValueString()),
-		LicenseTemplate:          github.Ptr(model.LicenseTemplate.ValueString()),
-		AllowSquashMerge:         github.Ptr(model.AllowSquashMerge.ValueBool()),
-		AllowMergeCommit:         github.Ptr(model.AllowMergeCommit.ValueBool()),
-		AllowRebaseMerge:         github.Ptr(model.AllowRebaseMerge.ValueBool()),
-		AllowAutoMerge:           github.Ptr(model.AllowAutoMerge.ValueBool()),
-		DeleteBranchOnMerge:      github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
-		SquashMergeCommitTitle:   github.Ptr(model.SquashMergeCommitTitle.ValueString()),
-		SquashMergeCommitMessage: github.Ptr(model.SquashMergeCommitMessage.ValueString()),
-		MergeCommitTitle:         github.Ptr(model.MergeCommitTitle.ValueString()),
-		MergeCommitMessage:       github.Ptr(model.MergeCommitMessage.ValueString()),
-		IsTemplate:               github.Ptr(model.IsTemplate.ValueBool()),
+	client := r.client
+	owner := r.owner
+	organization := r.organization
+
+	var repo *github.Repository
+	var err error
+
+	if !model.TemplateRepository.IsNull() {
+		// Create from a Template
+		templateRepo := model.TemplateRepository.ValueString()
+		templateOwner := model.TemplateOwner.ValueString()
+
+		// Use the Provider Configured `owner` for the API Call
+		if templateOwner == "" {
+			templateOwner = owner
+		}
+
+		templateReq := &github.TemplateRepoRequest{
+			Name:        github.Ptr(model.Name.ValueString()),
+			Owner:       github.Ptr(owner), // The owner (org) where the new repository will be created.
+			Description: github.Ptr(model.Description.ValueString()),
+			Private:     github.Ptr(model.Private.ValueBool()),
+		}
+
+		_, _, err = client.Repositories.CreateFromTemplate(ctx, templateOwner, templateRepo, templateReq)
+		if err != nil {
+			resp.Diagnostics.AddError("Error Creating Repository from Template", err.Error())
+			return
+		}
+
+		repository := expandRepository(model, expandForUpdate)
+		repo, _, err = client.Repositories.Edit(ctx, owner, model.Name.ValueString(), repository)
+		if err != nil {
+			resp.Diagnostics.AddError("Error Applying Settings after Template Creation", err.Error())
+			return
+		}
+	} else {
+		// Standard Creation
+		repository := expandRepository(model, expandForCreate)
+		repo, _, err = client.Repositories.Create(ctx, organization, repository)
+		if err != nil {
+			resp.Diagnostics.AddError("Error Creating Repository", err.Error())
+			return
+		}
 	}
 
-	repo, _, err := client.Repositories.Create(ctx, organization, repository)
+	flattenRepository(&model, repo)
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Communicating with the GitHub API",
-			fmt.Sprintf("Unable to create the repository, got error: %s", err),
-		)
-		return
+	// Handle fields that GitHub doesn't return but Terraform tracks.
+	// The GitHub API response does not tell us what Template was used.
+	// We need to make sure the State matches the Plan to avoid state
+	// inconsistencies.
+
+	if model.TemplateRepository.IsNull() {
+		// If not using a template, ensure these are null in state.
+		model.TemplateRepository = types.StringNull()
+		model.TemplateOwner = types.StringNull()
+	} else {
+		// If using a template, ensure TemplateOwner is set.
+		// If the user left it optional (Unknown in plan), default to 'owner'.
+		if model.TemplateOwner.IsUnknown() || model.TemplateOwner.IsNull() {
+			model.TemplateOwner = types.StringValue(owner)
+		}
 	}
-
-	model.UpdateFromAPI(repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -457,46 +490,20 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 	client := r.client
 	owner := r.owner
 
-	// Read Terraform plan data into the model.
+	// Read Plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &model)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Read Terraform prior state data into the model.
+	// Read Terraform State
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	repository := &github.Repository{
-		Name:                     github.Ptr(model.Name.ValueString()),
-		Description:              github.Ptr(model.Description.ValueString()),
-		Homepage:                 github.Ptr(model.Homepage.ValueString()),
-		Private:                  github.Ptr(model.Private.ValueBool()),
-		HasIssues:                github.Ptr(model.HasIssues.ValueBool()),
-		HasProjects:              github.Ptr(model.HasProjects.ValueBool()),
-		HasWiki:                  github.Ptr(model.HasWiki.ValueBool()),
-		HasDiscussions:           github.Ptr(model.HasDiscussions.ValueBool()),
-		AutoInit:                 github.Ptr(model.AutoInit.ValueBool()),
-		GitignoreTemplate:        github.Ptr(model.GitignoreTemplate.ValueString()),
-		LicenseTemplate:          github.Ptr(model.LicenseTemplate.ValueString()),
-		AllowSquashMerge:         github.Ptr(model.AllowSquashMerge.ValueBool()),
-		AllowMergeCommit:         github.Ptr(model.AllowMergeCommit.ValueBool()),
-		AllowRebaseMerge:         github.Ptr(model.AllowRebaseMerge.ValueBool()),
-		AllowAutoMerge:           github.Ptr(model.AllowAutoMerge.ValueBool()),
-		DeleteBranchOnMerge:      github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
-		SquashMergeCommitTitle:   github.Ptr(model.SquashMergeCommitTitle.ValueString()),
-		SquashMergeCommitMessage: github.Ptr(model.SquashMergeCommitMessage.ValueString()),
-		MergeCommitTitle:         github.Ptr(model.MergeCommitTitle.ValueString()),
-		MergeCommitMessage:       github.Ptr(model.MergeCommitMessage.ValueString()),
-		IsTemplate:               github.Ptr(model.IsTemplate.ValueBool()),
-	}
-
+	repository := expandRepository(model, expandForUpdate)
 	repo, _, err := client.Repositories.Edit(ctx, owner, state.Name.ValueString(), repository)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Communicating with the GitHub API",
@@ -505,7 +512,7 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	model.UpdateFromAPI(repo)
+	flattenRepository(&model, repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -517,15 +524,13 @@ func (r *GitHubRepositoryResource) Delete(ctx context.Context, req resource.Dele
 	client := r.client
 	owner := r.owner
 
-	// Read Terraform prior state data into the model.
+	// Read Terraform State
 	resp.Diagnostics.Append(req.State.Get(ctx, &model)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	_, err := client.Repositories.Delete(ctx, owner, model.Name.ValueString())
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Communicating with the GitHub API",
@@ -540,7 +545,6 @@ func (r *GitHubRepositoryResource) Delete(ctx context.Context, req resource.Dele
 
 func (r *GitHubRepositoryResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	id, err := strconv.ParseInt(req.ID, 10, 64)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing item",
@@ -550,4 +554,92 @@ func (r *GitHubRepositoryResource) ImportState(ctx context.Context, req resource
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id)...)
+}
+
+// Helpers
+
+type expansionMode int
+
+const (
+	expandForCreate expansionMode = iota
+	expandForUpdate
+)
+
+func expandRepository(model GitHubRepositoryResourceModel, mode expansionMode) *github.Repository {
+	repo := &github.Repository{
+		Name:                github.Ptr(model.Name.ValueString()),
+		Description:         github.Ptr(model.Description.ValueString()),
+		Homepage:            github.Ptr(model.Homepage.ValueString()),
+		Private:             github.Ptr(model.Private.ValueBool()),
+		HasIssues:           github.Ptr(model.HasIssues.ValueBool()),
+		HasProjects:         github.Ptr(model.HasProjects.ValueBool()),
+		HasWiki:             github.Ptr(model.HasWiki.ValueBool()),
+		HasDiscussions:      github.Ptr(model.HasDiscussions.ValueBool()),
+		AllowSquashMerge:    github.Ptr(model.AllowSquashMerge.ValueBool()),
+		AllowMergeCommit:    github.Ptr(model.AllowMergeCommit.ValueBool()),
+		AllowRebaseMerge:    github.Ptr(model.AllowRebaseMerge.ValueBool()),
+		AllowAutoMerge:      github.Ptr(model.AllowAutoMerge.ValueBool()),
+		DeleteBranchOnMerge: github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
+		IsTemplate:          github.Ptr(model.IsTemplate.ValueBool()),
+	}
+
+	// Create is the only time you can successfully pass these parameters into the GitHub API.
+	if mode == expandForCreate {
+		repo.AutoInit = github.Ptr(model.AutoInit.ValueBool())
+		repo.GitignoreTemplate = github.Ptr(model.GitignoreTemplate.ValueString())
+		repo.LicenseTemplate = github.Ptr(model.LicenseTemplate.ValueString())
+	}
+
+	if model.AllowSquashMerge.ValueBool() {
+		repo.SquashMergeCommitTitle = github.Ptr(model.SquashMergeCommitTitle.ValueString())
+		repo.SquashMergeCommitMessage = github.Ptr(model.SquashMergeCommitMessage.ValueString())
+	}
+
+	if model.AllowMergeCommit.ValueBool() {
+		repo.MergeCommitTitle = github.Ptr(model.MergeCommitTitle.ValueString())
+		repo.MergeCommitMessage = github.Ptr(model.MergeCommitMessage.ValueString())
+	}
+
+	return repo
+}
+
+func flattenRepository(model *GitHubRepositoryResourceModel, repo *github.Repository) {
+	// IDs
+	model.ID = types.Int64Value(repo.GetID())
+	model.NodeID = types.StringValue(repo.GetNodeID())
+	// Arguments
+	model.Name = types.StringValue(repo.GetName())
+	model.Description = types.StringValue(repo.GetDescription())
+	model.Homepage = types.StringValue(repo.GetHomepage())
+	model.Private = types.BoolValue(repo.GetPrivate())
+	model.HasIssues = types.BoolValue(repo.GetHasIssues())
+	model.HasProjects = types.BoolValue(repo.GetHasProjects())
+	model.HasWiki = types.BoolValue(repo.GetHasWiki())
+	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
+	// Attributes
+	model.Private = types.BoolValue(repo.GetPrivate())
+	model.HasIssues = types.BoolValue(repo.GetHasIssues())
+	model.HasProjects = types.BoolValue(repo.GetHasProjects())
+	model.HasWiki = types.BoolValue(repo.GetHasWiki())
+	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
 }
