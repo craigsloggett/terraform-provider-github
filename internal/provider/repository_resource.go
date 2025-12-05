@@ -462,15 +462,13 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 
 	client := r.client
 
-	// Read Terraform prior state data into the model.
+	// Read Terraform State
 	resp.Diagnostics.Append(req.State.Get(ctx, &model)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	repo, _, err := client.Repositories.GetByID(ctx, model.ID.ValueInt64())
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Communicating with the GitHub API",
@@ -479,7 +477,6 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	// Flatten the API structure into the Terraform state model.
 	flattenRepository(&model, repo)
 
 	// Save updated data into Terraform state.
@@ -489,93 +486,76 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var model GitHubRepositoryResourceModel
 
-	client := r.client
-	owner := r.owner
-	organization := r.organization
-
-	// Read Terraform plan data into the model.
+	// Read Plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &model)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	client := r.client
+	owner := r.owner
+	organization := r.organization
+
 	var repo *github.Repository
 	var err error
 
-	// If the plan has `template_repository` configured.
 	if !model.TemplateRepository.IsNull() {
+		// Create from a Template
 		templateRepo := model.TemplateRepository.ValueString()
 		templateOwner := model.TemplateOwner.ValueString()
 
-		// Explicitly set to "", use provider configuration for the API call.
+		// Use the Provider Configured `owner` for the API Call
 		if templateOwner == "" {
 			templateOwner = owner
 		}
 
-		// Unknown or null, update the state model to match the provider configured `owner`.
-		if model.TemplateOwner.IsUnknown() || model.TemplateOwner.IsNull() {
-			model.TemplateOwner = types.StringValue(templateOwner)
-		}
-
 		templateReq := &github.TemplateRepoRequest{
 			Name:        github.Ptr(model.Name.ValueString()),
-			Owner:       github.Ptr(owner),
+			Owner:       github.Ptr(owner), // The owner (org) where the new repository will be created.
 			Description: github.Ptr(model.Description.ValueString()),
 			Private:     github.Ptr(model.Private.ValueBool()),
 		}
 
-		repo, _, err = client.Repositories.CreateFromTemplate(ctx, templateOwner, templateRepo, templateReq)
-
+		_, _, err = client.Repositories.CreateFromTemplate(ctx, templateOwner, templateRepo, templateReq)
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Creating Repository from Template",
-				fmt.Sprintf("Unable to create the repository from template %s/%s, got error: %s", templateOwner, templateRepo, err),
-			)
+			resp.Diagnostics.AddError("Error Creating Repository from Template", err.Error())
+			return
+		}
+
+		repository := expandRepository(model, expandForUpdate)
+		repo, _, err = client.Repositories.Edit(ctx, owner, model.Name.ValueString(), repository)
+		if err != nil {
+			resp.Diagnostics.AddError("Error Applying Settings after Template Creation", err.Error())
 			return
 		}
 	} else {
-		// Expand the Terraform state model into the API structure.
+		// Standard Creation
 		repository := expandRepository(model, expandForCreate)
-
 		repo, _, err = client.Repositories.Create(ctx, organization, repository)
-
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Creating Repository",
-				fmt.Sprintf("Unable to create the repository, got error: %s", err),
-			)
+			resp.Diagnostics.AddError("Error Creating Repository", err.Error())
 			return
 		}
 	}
 
-	if !model.TemplateRepository.IsNull() {
-		// Expand the Terraform state model into the API structure.
-		repository := expandRepository(model, expandForUpdate)
+	flattenRepository(&model, repo)
 
-		repo, _, err = client.Repositories.Edit(ctx, r.owner, model.Name.ValueString(), repository)
-
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error Updating Repository Settings After Template Creation",
-				fmt.Sprintf("Repository created, but failed to apply settings: %s", err),
-			)
-			return
-		}
-	}
+	// Handle fields that GitHub doesn't return but Terraform tracks.
+	// The GitHub API response does not tell us what Template was used.
+	// We need to make sure the State matches the Plan to avoid state
+	// inconsistencies.
 
 	if model.TemplateRepository.IsNull() {
-		if model.TemplateOwner.IsUnknown() || model.TemplateOwner.IsNull() {
-			model.TemplateOwner = types.StringNull()
-		}
+		// If not using a template, ensure these are null in state.
+		model.TemplateRepository = types.StringNull()
+		model.TemplateOwner = types.StringNull()
 	} else {
-		if model.TemplateOwner.IsUnknown() || model.TemplateOwner.IsNull() || model.TemplateOwner.ValueString() == "" {
-			model.TemplateOwner = types.StringValue(r.owner)
+		// If using a template, ensure TemplateOwner is set.
+		// If the user left it optional (Unknown in plan), default to 'owner'.
+		if model.TemplateOwner.IsUnknown() || model.TemplateOwner.IsNull() {
+			model.TemplateOwner = types.StringValue(owner)
 		}
 	}
-
-	// Flatten the API structure into the Terraform state model.
-	flattenRepository(&model, repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -588,25 +568,20 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 	client := r.client
 	owner := r.owner
 
-	// Read Terraform plan data into the model.
+	// Read Plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &model)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Read Terraform prior state data into the model.
+	// Read Terraform State
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Expand the Terraform state model into the API structure.
 	repository := expandRepository(model, expandForUpdate)
-
 	repo, _, err := client.Repositories.Edit(ctx, owner, state.Name.ValueString(), repository)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Communicating with the GitHub API",
@@ -615,7 +590,6 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	// Flatten the API structure into the Terraform state model.
 	flattenRepository(&model, repo)
 
 	// Save updated data into Terraform state.
@@ -628,15 +602,13 @@ func (r *GitHubRepositoryResource) Delete(ctx context.Context, req resource.Dele
 	client := r.client
 	owner := r.owner
 
-	// Read Terraform prior state data into the model.
+	// Read Terraform State
 	resp.Diagnostics.Append(req.State.Get(ctx, &model)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	_, err := client.Repositories.Delete(ctx, owner, model.Name.ValueString())
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Communicating with the GitHub API",
@@ -651,7 +623,6 @@ func (r *GitHubRepositoryResource) Delete(ctx context.Context, req resource.Dele
 
 func (r *GitHubRepositoryResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	id, err := strconv.ParseInt(req.ID, 10, 64)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing item",
