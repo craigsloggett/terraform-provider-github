@@ -87,11 +87,7 @@ func (m *GitHubRepositoryResourceModel) UpdateFromAPI(repo *github.Repository) {
 	m.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
 	m.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
 	m.IsTemplate = types.BoolValue(repo.GetIsTemplate())
-	// Template Arguments
-	if repo.TemplateRepository != nil {
-		m.TemplateRepository = types.StringValue(repo.TemplateRepository.GetName())
-		m.TemplateOwner = types.StringValue(repo.TemplateRepository.Owner.GetLogin())
-	}
+
 	// Attributes
 	m.ID = types.Int64Value(repo.GetID())
 	m.NodeID = types.StringValue(repo.GetNodeID())
@@ -354,6 +350,7 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Description:         "The owner of the template repository.",
 				MarkdownDescription: "The owner of the template repository.",
 				Optional:            true,
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -453,6 +450,10 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 			templateOwner = r.owner
 		}
 
+		if model.TemplateOwner.IsUnknown() || model.TemplateOwner.IsNull() {
+			model.TemplateOwner = types.StringValue(templateOwner)
+		}
+
 		templateReq := &github.TemplateRepoRequest{
 			Name:        github.Ptr(model.Name.ValueString()),
 			Owner:       github.Ptr(r.owner),
@@ -549,6 +550,16 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 				fmt.Sprintf("Repository created, but failed to apply settings: %s", err),
 			)
 			return
+		}
+	}
+
+	if model.TemplateRepository.IsNull() {
+		if model.TemplateOwner.IsUnknown() || model.TemplateOwner.IsNull() {
+			model.TemplateOwner = types.StringNull()
+		}
+	} else {
+		if model.TemplateOwner.IsUnknown() || model.TemplateOwner.IsNull() || model.TemplateOwner.ValueString() == "" {
+			model.TemplateOwner = types.StringValue(r.owner)
 		}
 	}
 

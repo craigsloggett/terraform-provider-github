@@ -296,6 +296,8 @@ func TestAccRepositoryResourceAllArguments(t *testing.T) {
 					"auto_init",
 					"gitignore_template",
 					"license_template",
+					"template_repository",
+					"template_owner",
 				},
 			},
 			{
@@ -454,6 +456,8 @@ func TestAccRepositoryResourceNoMergeCommits(t *testing.T) {
 					"auto_init",
 					"gitignore_template",
 					"license_template",
+					"template_repository",
+					"template_owner",
 				},
 			},
 			{
@@ -512,6 +516,8 @@ func TestAccRepositoryResourceTemplateOwnerDefault(t *testing.T) {
 					"auto_init",
 					"gitignore_template",
 					"license_template",
+					"template_repository",
+					"template_owner",
 				},
 			},
 			{
