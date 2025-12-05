@@ -66,33 +66,6 @@ type GitHubRepositoryResourceModel struct {
 	NodeID types.String `tfsdk:"node_id"`
 }
 
-// UpdateFromAPI populates the model with data from the GitHub API repository object.
-func (m *GitHubRepositoryResourceModel) UpdateFromAPI(repo *github.Repository) {
-	// Arguments
-	m.Name = types.StringValue(repo.GetName())
-	m.Description = types.StringValue(repo.GetDescription())
-	m.Homepage = types.StringValue(repo.GetHomepage())
-	m.Private = types.BoolValue(repo.GetPrivate())
-	m.HasIssues = types.BoolValue(repo.GetHasIssues())
-	m.HasProjects = types.BoolValue(repo.GetHasProjects())
-	m.HasWiki = types.BoolValue(repo.GetHasWiki())
-	m.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
-	m.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
-	m.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
-	m.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
-	m.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
-	m.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
-	m.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
-	m.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
-	m.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
-	m.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	m.IsTemplate = types.BoolValue(repo.GetIsTemplate())
-
-	// Attributes
-	m.ID = types.Int64Value(repo.GetID())
-	m.NodeID = types.StringValue(repo.GetNodeID())
-}
-
 type expansionMode int
 
 const (
@@ -136,6 +109,47 @@ func expandRepository(model GitHubRepositoryResourceModel, mode expansionMode) *
 	}
 
 	return repo
+}
+
+func flattenRepository(model *GitHubRepositoryResourceModel, repo *github.Repository) {
+	// IDs
+	model.ID = types.Int64Value(repo.GetID())
+	model.NodeID = types.StringValue(repo.GetNodeID())
+	// Arguments
+	model.Name = types.StringValue(repo.GetName())
+	model.Description = types.StringValue(repo.GetDescription())
+	model.Homepage = types.StringValue(repo.GetHomepage())
+	model.Private = types.BoolValue(repo.GetPrivate())
+	model.HasIssues = types.BoolValue(repo.GetHasIssues())
+	model.HasProjects = types.BoolValue(repo.GetHasProjects())
+	model.HasWiki = types.BoolValue(repo.GetHasWiki())
+	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
+	// Attributes
+	model.Private = types.BoolValue(repo.GetPrivate())
+	model.HasIssues = types.BoolValue(repo.GetHasIssues())
+	model.HasProjects = types.BoolValue(repo.GetHasProjects())
+	model.HasWiki = types.BoolValue(repo.GetHasWiki())
+	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
+	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
+	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
+	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
+	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
+	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
+	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
+	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
+	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
 }
 
 func (r *GitHubRepositoryResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -465,7 +479,8 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	model.UpdateFromAPI(repo)
+	// Flatten the API structure into the Terraform state model.
+	flattenRepository(&model, repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -520,6 +535,7 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 			return
 		}
 	} else {
+		// Expand the Terraform state model into the API structure.
 		repository := expandRepository(model, expandForCreate)
 
 		repo, _, err = client.Repositories.Create(ctx, organization, repository)
@@ -534,6 +550,7 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	if !model.TemplateRepository.IsNull() {
+		// Expand the Terraform state model into the API structure.
 		repository := expandRepository(model, expandForUpdate)
 
 		repo, _, err = client.Repositories.Edit(ctx, r.owner, model.Name.ValueString(), repository)
@@ -557,7 +574,8 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		}
 	}
 
-	model.UpdateFromAPI(repo)
+	// Flatten the API structure into the Terraform state model.
+	flattenRepository(&model, repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -584,6 +602,7 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
+	// Expand the Terraform state model into the API structure.
 	repository := expandRepository(model, expandForUpdate)
 
 	repo, _, err := client.Repositories.Edit(ctx, owner, state.Name.ValueString(), repository)
@@ -596,7 +615,8 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	model.UpdateFromAPI(repo)
+	// Flatten the API structure into the Terraform state model.
+	flattenRepository(&model, repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
