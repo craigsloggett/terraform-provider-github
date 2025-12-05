@@ -430,6 +430,7 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 	var model GitHubRepositoryResourceModel
 
 	client := r.client
+	owner := r.owner
 	organization := r.organization
 
 	// Read Terraform plan data into the model.
@@ -442,21 +443,25 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 	var repo *github.Repository
 	var err error
 
+	// If the plan has `template_repository` configured.
 	if !model.TemplateRepository.IsNull() {
 		templateRepo := model.TemplateRepository.ValueString()
 		templateOwner := model.TemplateOwner.ValueString()
 
+		// Explicitly set to "", use provider configuration for the API call.
 		if templateOwner == "" {
-			templateOwner = r.owner
+			templateOwner = owner
 		}
 
+		// Unknown or null, use provider configuration for the API call and update the state model.
 		if model.TemplateOwner.IsUnknown() || model.TemplateOwner.IsNull() {
+			templateOwner = owner
 			model.TemplateOwner = types.StringValue(templateOwner)
 		}
 
 		templateReq := &github.TemplateRepoRequest{
 			Name:        github.Ptr(model.Name.ValueString()),
-			Owner:       github.Ptr(r.owner),
+			Owner:       github.Ptr(owner),
 			Description: github.Ptr(model.Description.ValueString()),
 			Private:     github.Ptr(model.Private.ValueBool()),
 		}
