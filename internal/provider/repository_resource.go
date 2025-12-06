@@ -509,7 +509,15 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 	var repo *github.Repository
 	var err error
 
-	if !model.TemplateRepository.IsNull() {
+	if model.TemplateRepository.IsNull() {
+		// Standard Creation
+		repository := expandRepository(model, expandForCreate)
+		repo, _, err = client.Repositories.Create(ctx, organization, repository)
+		if err != nil {
+			resp.Diagnostics.AddError("Error Creating Repository", err.Error())
+			return
+		}
+	} else {
 		// Create from a Template
 		templateRepo := model.TemplateRepository.ValueString()
 		templateOwner := model.TemplateOwner.ValueString()
@@ -536,14 +544,6 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		repo, _, err = client.Repositories.Edit(ctx, owner, model.Name.ValueString(), repository)
 		if err != nil {
 			resp.Diagnostics.AddError("Error Applying Settings after Template Creation", err.Error())
-			return
-		}
-	} else {
-		// Standard Creation
-		repository := expandRepository(model, expandForCreate)
-		repo, _, err = client.Repositories.Create(ctx, organization, repository)
-		if err != nil {
-			resp.Diagnostics.AddError("Error Creating Repository", err.Error())
 			return
 		}
 	}
