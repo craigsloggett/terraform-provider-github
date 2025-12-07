@@ -1,0 +1,36 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.RenderedProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+### Standard
+
+{{ tffile "examples/resources/github_repository/resource.tf" }}
+
+### Create from a Template
+
+Use a template to create a repository.
+
+{{ tffile "examples/resources/github_repository/resource_from_template.tf" }}
+
+### Create from a Template and Specify Owner
+
+Demonstrates creating a repository from a template owned by a different user or organization than the one configured in the provider.
+
+{{ tffile "examples/resources/github_repository/resource_from_template_owner.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+{{codefile "shell" .ImportFile}}
+{{- end }}
