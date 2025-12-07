@@ -475,6 +475,7 @@ func testAccRepositoryResourceTemplateOwnerDefaultConfig(name string) string {
 resource "github_repository" "test" {
   name                = %[1]q
   template_repository = "terraform-module-template"
+  template_owner      = "craigsloggett-lab"
 
   private         = false
   has_issues      = true
