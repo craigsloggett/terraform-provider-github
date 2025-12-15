@@ -1,6 +1,6 @@
 module github.com/craigsloggett/terraform-provider-github
 
-go 1.25.4
+go 1.25.5
 
 require (
 	github.com/google/go-github/v79 v79.0.0
