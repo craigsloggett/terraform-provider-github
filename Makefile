@@ -24,7 +24,7 @@ ifeq ($(shell uname -m),arm64)
 endif
 
 .PHONY: all
-all: format lint install docs test
+all: lint test build
 
 .PHONY: tools
 tools: $(BIN)/go $(BIN)/golangci-lint $(BIN)/tfplugindocs $(BIN)/actionlint $(BIN)/shellcheck
@@ -100,12 +100,12 @@ update: $(BIN)/go
 	@go mod tidy
 
 .PHONY: build
-build: update
+build: $(BIN)/go
 	@echo "Building..."
 	@go build ./...
 
 .PHONY: install
-install: update
+install: build
 	@echo "Installing provider..."
 	@go install ./...
 
@@ -115,19 +115,28 @@ format: tools
 	@go fmt ./...
 
 .PHONY: lint
-lint: tools update
+lint: tools
 	@echo "Linting..."
 	@golangci-lint run ./...
 	@actionlint
+	@find . -type f -name '*.sh' \
+		-not -path './.git/*' \
+		-not -path './.local/*' \
+	| while IFS= read -r file; do shellcheck "$${file}"; done
 
 .PHONY: docs
-docs: tools update install
+docs: tools install
 	@echo "Generating Docs..."
 	@$(BIN)/./tfplugindocs generate -rendered-provider-name "GitHub" >/dev/null
 
 .PHONY: test
-test: install
+test: $(BIN)/go
 	@echo "Testing..."
+	@go test ./... -count=1
+
+.PHONY: testacc
+testacc: install
+	@echo "Testing Acceptance..."
 	@cd internal/provider && TF_ACC=1 go test -count=1 -v
 
 .PHONY: clean
