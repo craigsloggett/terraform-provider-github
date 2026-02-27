@@ -30,4 +30,5 @@ rules:
     quote-type: single
     required: only-when-needed
 
-  line-length: disable
+  line-length:
+    max: 120
