@@ -1,84 +1,84 @@
 name: Lint
 
 on:
-- pull_request
+  - pull_request
 
 jobs:
   actionlint:
     name: GitHub Actions
     runs-on: ubuntu-24.04
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Setup Go
-      uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
-      with:
-        go-version: 1.26.0
-        cache: false
-    - name: Install actionlint
-      run: |
-        go install github.com/rhysd/actionlint/cmd/actionlint@393031adb9afb225ee52ae2ccd7a5af5525e03e8 # v1.7.11
-    - name: Lint Workflow Files
-      run: |
-        actionlint -color
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version: 1.26.0
+          cache: false
+      - name: Install actionlint
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@393031adb9afb225ee52ae2ccd7a5af5525e03e8 # v1.7.11
+      - name: Lint Workflow Files
+        run: |
+          actionlint -color
   yamllint:
     name: YAML
     runs-on: ubuntu-24.04
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Setup Python
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-      with:
-        python-version: 3.14.0
-    - name: Install yamllint
-      run: |
-        pip install --upgrade pip
-        pip install yamllint
-    - name: Lint YAML Files
-      run: |
-        yamllint .
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: 3.14.0
+      - name: Install yamllint
+        run: |
+          pip install --upgrade pip
+          pip install yamllint
+      - name: Lint YAML Files
+        run: |
+          yamllint .
   golangci-lint:
     name: Go
     runs-on: ubuntu-24.04
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Setup Go
-      uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
-      with:
-        go-version-file: go.mod
-        cache: true
-    - name: Lint Go Files
-      uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
-      with:
-        version: v2.10.1
-        skip-pkg-cache: true
-        skip-build-cache: true
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Lint Go Files
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
+        with:
+          version: v2.10.1
+          skip-pkg-cache: true
+          skip-build-cache: true
   terraform-fmt:
     name: Terraform
     runs-on: ubuntu-24.04
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
-      with:
-        terraform_version: 1.14.0
-    - name: Lint Terraform Files
-      run: |
-        terraform fmt -recursive -check
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: 1.14.0
+      - name: Lint Terraform Files
+        run: |
+          terraform fmt -recursive -check
   tfplugindocs:
     name: Docs
     runs-on: ubuntu-24.04
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Setup Go
-      uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
-      with:
-        go-version-file: go.mod
-        cache: true
-    - name: Validate Docs
-      run: |-
-        echo "Validate the docs have been generated."
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Validate Docs
+        run: |-
+          echo "Validate the docs have been generated."
