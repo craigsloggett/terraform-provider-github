@@ -1,8 +1,10 @@
 BIN           := $(PWD)/.local/bin
 CACHE         := $(PWD)/.local/cache
 GOPATH        := $(CACHE)/go
+VENV          := $(CACHE)/venv
 PATH          := $(BIN):$(PATH)
 SHELL         := env PATH=$(PATH) GOPATH=$(GOPATH) /bin/sh
+PYTHON        ?= python3
 PROVIDER_NAME := terraform-provider-github
 
 # Versions
@@ -11,6 +13,8 @@ golangci_version     := 2.10.1
 tfplugindocs_version := 0.24.0
 actionlint_version   := 1.7.11
 shellcheck_version   := 0.11.0
+yamlfmt_version      := 0.21.0
+yamllint_version     := 1.37.1
 
 # Operating System and Architecture
 os ?= $(shell uname|tr A-Z a-z)
@@ -27,7 +31,7 @@ endif
 all: lint test build
 
 .PHONY: tools
-tools: $(BIN)/go $(BIN)/golangci-lint $(BIN)/tfplugindocs $(BIN)/actionlint $(BIN)/shellcheck
+tools: $(BIN)/go $(BIN)/golangci-lint $(BIN)/tfplugindocs $(BIN)/actionlint $(BIN)/shellcheck $(BIN)/yamlfmt $(BIN)/yamllint
 
 # Setup Go
 go_package_name := go$(go_version).$(os)-$(arch)
@@ -93,6 +97,26 @@ $(BIN)/shellcheck:
 	@tar -C $(BIN) -xf $(BIN)/$(shellcheck_package_name).tar.xz && rm $(BIN)/$(shellcheck_package_name).tar.xz
 	@ln -s $(shellcheck_install_path)/shellcheck $(BIN)/shellcheck
 
+# Setup yamlfmt
+$(BIN)/yamlfmt: $(BIN)/go
+	@mkdir -p $(BIN)
+	@echo "Installing yamlfmt $(yamlfmt_version)..."
+	@go install github.com/google/yamlfmt/cmd/yamlfmt@v$(yamlfmt_version)
+	@ln -s $(GOPATH)/bin/yamlfmt $(BIN)/yamlfmt
+
+# Setup yamllint
+$(VENV)/bin/pip:
+	@mkdir -p $(CACHE)
+	@echo "Creating Python virtual environment at $(VENV)..."
+	@$(PYTHON) -m venv $(VENV)
+
+$(BIN)/yamllint: $(VENV)/bin/pip
+	@mkdir -p $(BIN)
+	@echo "Installing yamllint $(yamllint_version)..."
+	@$(VENV)/bin/pip install --upgrade pip
+	@$(VENV)/bin/pip install yamllint==$(yamllint_version)
+	@ln -s $(VENV)/bin/yamllint $(BIN)/yamllint
+
 .PHONY: update
 update: $(BIN)/go
 	@echo "Updating dependencies..."
@@ -113,12 +137,15 @@ install: build
 format: tools
 	@echo "Formatting..."
 	@go fmt ./...
+	@yamlfmt -conf .yamlfmt .github/workflows/*.yml
 
 .PHONY: lint
 lint: tools
 	@echo "Linting..."
 	@golangci-lint run ./...
 	@actionlint
+	@yamlfmt -conf .yamlfmt -lint .github/workflows/*.yml
+	@yamllint .github/workflows
 	@find . -type f -name '*.sh' \
 		-not -path './.git/*' \
 		-not -path './.local/*' \
