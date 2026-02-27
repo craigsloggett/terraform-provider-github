@@ -2,44 +2,29 @@ name: Update
 
 on:
   schedule:
-  # Run weekly on Mondays at 10:00 UTC
-  - cron: 0 10 * * 1
+    # Run weekly on Mondays at 10:00 UTC
+    - cron: 0 10 * * 1
   workflow_dispatch:
 
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: update
+  cancel-in-progress: false
+
 jobs:
-  go:
-    name: Go
+  dependencies-and-tooling:
+    name: Dependencies and Tooling
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Get Latest Go Version
-      id: latest-version
-      run: |
-        # Get the latest stable Go version from the Go API.
-        LATEST_VERSION=$(curl -s "https://go.dev/dl/?mode=json" | jq -r '.[0].version' | sed 's/go//')
-        echo "version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
-    - name: Get Current Go Version
-      id: current-version
-      run: |
-        # Get the current version from the Makefile.
-        CURRENT_VERSION=$(grep "^go_version" Makefile | tr -s ' ' | cut -d' ' -f3)
-        echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
-    - name: Compare Go Versions
-      id: compare-versions
-      run: |
-        if [ "${{ steps.latest-version.outputs.version }}" != "${{ steps.current-version.outputs.version }}" ]; then
-          echo "update=true" >> "$GITHUB_OUTPUT"
-        fi
     - name: Check for an Existing Pull Request
       id: check-open-pull-requests
-      if: steps.compare-versions.outputs.update == 'true'
       run: |
-        BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
+        BRANCH_NAME="update/dependencies-and-tooling"
         if gh pr list --head "$BRANCH_NAME" --state open --json number | jq -e '. | length > 0' >/dev/null; then
           echo "exists=true" >> "$GITHUB_OUTPUT"
         else
@@ -47,36 +32,121 @@ jobs:
         fi
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    - name: Create Branch and Update Go Version
-      if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
+    - name: Create Branch and Update Dependencies/Tooling
+      id: update
+      if: steps.check-open-pull-requests.outputs.exists == 'false'
       run: |
+        set -euo pipefail
+
+        latest_release_tag() {
+          local repo="$1"
+          curl --silent --show-error --fail \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/repos/${repo}/releases/latest" \
+          | jq -r '.tag_name'
+        }
+
+        latest_stable_go_version() {
+          curl --silent --show-error --fail "https://go.dev/dl/?mode=json" \
+          | jq -r '[.[] | select(.stable == true)][0].version | sub("^go"; "")'
+        }
+
+        # Discover latest versions.
+        GO_VERSION="$(latest_stable_go_version)"
+        GOLANGCI_TAG="$(latest_release_tag "golangci/golangci-lint")"
+        TFPLUGINDOCS_TAG="$(latest_release_tag "hashicorp/terraform-plugin-docs")"
+        ACTIONLINT_TAG="$(latest_release_tag "rhysd/actionlint")"
+        SHELLCHECK_TAG="$(latest_release_tag "koalaman/shellcheck")"
+
+        GOLANGCI_VERSION="${GOLANGCI_TAG#v}"
+        TFPLUGINDOCS_VERSION="${TFPLUGINDOCS_TAG#v}"
+        ACTIONLINT_VERSION="${ACTIONLINT_TAG#v}"
+        SHELLCHECK_VERSION="${SHELLCHECK_TAG#v}"
+
+        # Resolve the immutable commit SHA for the actionlint release tag.
+        ACTIONLINT_SHA="$(git ls-remote https://github.com/rhysd/actionlint "refs/tags/${ACTIONLINT_TAG}^{}" | awk '{print $1}')"
+        if [ -z "${ACTIONLINT_SHA}" ]; then
+          ACTIONLINT_SHA="$(git ls-remote https://github.com/rhysd/actionlint "refs/tags/${ACTIONLINT_TAG}" | awk '{print $1}')"
+        fi
+
+        if [ -z "${ACTIONLINT_SHA}" ]; then
+          echo "Failed to resolve SHA for actionlint tag ${ACTIONLINT_TAG}."
+          exit 1
+        fi
+
         git config --global user.name "craigsloggett"
         git config --global user.email "684196+craigsloggett@users.noreply.github.com"
 
-        BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
-        git checkout -b "$BRANCH_NAME"
+        BRANCH_NAME="update/dependencies-and-tooling"
+        git checkout -B "$BRANCH_NAME"
 
-        sed -i "s/^go_version.*:= .*/go_version           := ${{ steps.latest-version.outputs.version }}/" Makefile
-        sed -i "s/^go .*/go ${{ steps.latest-version.outputs.version }}/" go.mod
+        # Update local tool versions.
+        sed -i "s/^go_version[[:space:]]*:= .*/go_version           := ${GO_VERSION}/" Makefile
+        sed -i "s/^golangci_version[[:space:]]*:= .*/golangci_version     := ${GOLANGCI_VERSION}/" Makefile
+        sed -i "s/^tfplugindocs_version[[:space:]]*:= .*/tfplugindocs_version := ${TFPLUGINDOCS_VERSION}/" Makefile
+        sed -i "s/^actionlint_version[[:space:]]*:= .*/actionlint_version   := ${ACTIONLINT_VERSION}/" Makefile
+        sed -i "s/^shellcheck_version[[:space:]]*:= .*/shellcheck_version   := ${SHELLCHECK_VERSION}/" Makefile
 
-        git add Makefile go.mod
-        git commit -m "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}"
+        # Keep go.mod and CI aligned with the configured Go/tooling versions.
+        sed -i "s/^go .*/go ${GO_VERSION}/" go.mod
+        sed -i "s/^\([[:space:]]*go-version: \).*/\1${GO_VERSION}/" .github/workflows/lint.yml
+        sed -i "s|^\([[:space:]]*go install github.com/rhysd/actionlint/cmd/actionlint@\).*|\1${ACTIONLINT_SHA} # ${ACTIONLINT_TAG}|" .github/workflows/lint.yml
+        sed -i "s/^\([[:space:]]*version: \).*/\1${GOLANGCI_TAG}/" .github/workflows/lint.yml
 
+        # Refresh provider dependencies and validate.
         make clean
         make update
-        git add go.mod go.sum
-        git commit -m "chore(deps): Update dependencies"
+        make
 
-        git push origin "$BRANCH_NAME"
+        if git diff --quiet; then
+          echo "No updates available."
+          {
+            echo "updated=false"
+          } >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
 
-        echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
+        git add Makefile go.mod go.sum .github/workflows/lint.yml
+        git commit -m "chore(deps): update tooling and dependencies"
+
+        git push --force-with-lease origin "$BRANCH_NAME"
+
+        {
+          echo "updated=true"
+          echo "branch_name=${BRANCH_NAME}"
+          echo "go_version=${GO_VERSION}"
+          echo "golangci_tag=${GOLANGCI_TAG}"
+          echo "tfplugindocs_tag=${TFPLUGINDOCS_TAG}"
+          echo "actionlint_tag=${ACTIONLINT_TAG}"
+          echo "shellcheck_tag=${SHELLCHECK_TAG}"
+        } >> "$GITHUB_OUTPUT"
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
     - name: Create Pull Request
-      if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
+      if: steps.check-open-pull-requests.outputs.exists == 'false' && steps.update.outputs.updated == 'true'
       run: |
         gh pr create \
-          --title "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}" \
-          --body "Automated update of Go from v${{ steps.current-version.outputs.version }} to v${{ steps.latest-version.outputs.version }}." \
+          --title "chore(deps): update tooling and dependencies" \
+          --body "$(cat <<'EOF'
+        This PR was created automatically by the scheduled `update` workflow.
+
+        Updated versions:
+        - Go: `${{ steps.update.outputs.go_version }}`
+        - golangci-lint: `${{ steps.update.outputs.golangci_tag }}`
+        - terraform-plugin-docs: `${{ steps.update.outputs.tfplugindocs_tag }}`
+        - actionlint: `${{ steps.update.outputs.actionlint_tag }}`
+        - shellcheck: `${{ steps.update.outputs.shellcheck_tag }}`
+
+        Included actions:
+        - Updated Makefile tooling pins
+        - Updated CI pins in `.github/workflows/lint.yml`
+        - Ran `make update` to refresh Go dependencies
+        - Ran `make` to validate lint/test/build
+        EOF
+        )" \
           --base main \
-          --head "${{ env.BRANCH_NAME }}"
+          --head "${{ steps.update.outputs.branch_name }}"
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
