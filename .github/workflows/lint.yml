@@ -53,8 +53,8 @@ jobs:
         uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
         with:
           version: v2.10.1
-          skip-pkg-cache: true
-          skip-build-cache: true
+          skip-cache: true
+          skip-save-cache: true
   terraform-fmt:
     name: Terraform
     runs-on: ubuntu-24.04
