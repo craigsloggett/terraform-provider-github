@@ -81,4 +81,9 @@ jobs:
           cache: true
       - name: Validate Docs
         run: |-
-          echo "Validate the docs have been generated."
+          make docs
+
+          if ! git diff --exit-code; then
+            printf '%s\n' "Documentation is out of date. Run 'make docs' and commit the changes."
+            exit 1
+          fi

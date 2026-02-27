@@ -152,7 +152,7 @@ lint: tools
 	| while IFS= read -r file; do shellcheck "$${file}"; done
 
 .PHONY: docs
-docs: tools install
+docs: $(BIN)/tfplugindocs install
 	@echo "Generating Docs..."
 	@$(BIN)/./tfplugindocs generate -rendered-provider-name "GitHub" >/dev/null
 
