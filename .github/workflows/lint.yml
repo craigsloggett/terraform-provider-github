@@ -37,7 +37,7 @@ jobs:
           pip install yamllint
       - name: Lint YAML Files
         run: |
-          yamllint .
+          yamllint --strict .github/workflows
   golangci-lint:
     name: Go
     runs-on: ubuntu-24.04

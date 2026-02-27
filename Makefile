@@ -145,7 +145,7 @@ lint: tools
 	@golangci-lint run ./...
 	@actionlint
 	@yamlfmt -conf .yamlfmt -lint .github/workflows/*.yml
-	@yamllint .github/workflows
+	@yamllint --strict .github/workflows
 	@find . -type f -name '*.sh' \
 		-not -path './.git/*' \
 		-not -path './.local/*' \
