@@ -9,8 +9,6 @@ description: |-
 
 This resource allows you to create and manage repositories within your GitHub organization or personal account.
 
-This is a test.
-
 ## Example Usage
 
 ### Standard
