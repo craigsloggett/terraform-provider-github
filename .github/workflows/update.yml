@@ -2,81 +2,284 @@ name: Update
 
 on:
   schedule:
-  # Run weekly on Mondays at 10:00 UTC
-  - cron: 0 10 * * 1
+    # Run weekly on Mondays at 10:00 UTC
+    - cron: 0 10 * * 1
   workflow_dispatch:
 
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: update
+  cancel-in-progress: false
+
 jobs:
-  go:
-    name: Go
+  check-open-pr:
+    name: Check Existing PR
     runs-on: ubuntu-24.04
+    outputs:
+      exists: ${{ steps.check.outputs.exists }}
+      branch_name: ${{ steps.check.outputs.branch_name }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Get Latest Go Version
-      id: latest-version
-      run: |
-        # Get the latest stable Go version from the Go API.
-        LATEST_VERSION=$(curl -s "https://go.dev/dl/?mode=json" | jq -r '.[0].version' | sed 's/go//')
-        echo "version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
-    - name: Get Current Go Version
-      id: current-version
-      run: |
-        # Get the current version from the Makefile.
-        CURRENT_VERSION=$(grep "^go_version" Makefile | tr -s ' ' | cut -d' ' -f3)
-        echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
-    - name: Compare Go Versions
-      id: compare-versions
-      run: |
-        if [ "${{ steps.latest-version.outputs.version }}" != "${{ steps.current-version.outputs.version }}" ]; then
-          echo "update=true" >> "$GITHUB_OUTPUT"
-        fi
-    - name: Check for an Existing Pull Request
-      id: check-open-pull-requests
-      if: steps.compare-versions.outputs.update == 'true'
-      run: |
-        BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
-        if gh pr list --head "$BRANCH_NAME" --state open --json number | jq -e '. | length > 0' >/dev/null; then
-          echo "exists=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "exists=false" >> "$GITHUB_OUTPUT"
-        fi
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    - name: Create Branch and Update Go Version
-      if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
-      run: |
-        git config --global user.name "craigsloggett"
-        git config --global user.email "684196+craigsloggett@users.noreply.github.com"
+      - name: Check for an Existing Pull Request
+        id: check
+        run: |
+          BRANCH_NAME="update/dependencies-and-tooling"
+          echo "branch_name=${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
 
-        BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
-        git checkout -b "$BRANCH_NAME"
+          if gh pr list --head "$BRANCH_NAME" --state open --json number \
+            | jq -e '. | length > 0' >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-        sed -i "s/^go_version.*:= .*/go_version           := ${{ steps.latest-version.outputs.version }}/" Makefile
-        sed -i "s/^go .*/go ${{ steps.latest-version.outputs.version }}/" go.mod
+  discover-go-version:
+    name: Discover Go
+    runs-on: ubuntu-24.04
+    needs:
+      - check-open-pr
+    if: needs.check-open-pr.outputs.exists == 'false'
+    outputs:
+      go_version: ${{ steps.discover.outputs.go_version }}
+    steps:
+      - name: Discover Latest Stable Go Version
+        id: discover
+        run: |
+          GO_VERSION="$(curl --silent --show-error --fail 'https://go.dev/dl/?mode=json' \
+            | jq -r '[.[] | select(.stable == true)][0].version | sub("^go"; "")')"
+          echo "go_version=${GO_VERSION}" >> "$GITHUB_OUTPUT"
 
-        git add Makefile go.mod
-        git commit -m "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}"
+  discover-python-version:
+    name: Discover Python
+    runs-on: ubuntu-24.04
+    needs:
+      - check-open-pr
+    if: needs.check-open-pr.outputs.exists == 'false'
+    outputs:
+      python_version: ${{ steps.discover.outputs.python_version }}
+    steps:
+      - name: Discover Latest Stable Python Version
+        id: discover
+        run: |
+          PYTHON_TAG="$(gh api repos/python/cpython/releases/latest --jq .tag_name)"
+          echo "python_version=${PYTHON_TAG#v}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-        make clean
-        make update
-        git add go.mod go.sum
-        git commit -m "chore(deps): Update dependencies"
+  discover-golangci:
+    name: Discover golangci-lint
+    runs-on: ubuntu-24.04
+    needs:
+      - check-open-pr
+    if: needs.check-open-pr.outputs.exists == 'false'
+    outputs:
+      golangci_tag: ${{ steps.discover.outputs.golangci_tag }}
+      golangci_version: ${{ steps.discover.outputs.golangci_version }}
+    steps:
+      - name: Discover Latest golangci-lint Tag
+        id: discover
+        run: |
+          TAG="$(gh api repos/golangci/golangci-lint/releases/latest --jq .tag_name)"
+          {
+            echo "golangci_tag=${TAG}"
+            echo "golangci_version=${TAG#v}"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-        git push origin "$BRANCH_NAME"
+  discover-tfplugindocs:
+    name: Discover tfplugindocs
+    runs-on: ubuntu-24.04
+    needs:
+      - check-open-pr
+    if: needs.check-open-pr.outputs.exists == 'false'
+    outputs:
+      tfplugindocs_tag: ${{ steps.discover.outputs.tfplugindocs_tag }}
+      tfplugindocs_version: ${{ steps.discover.outputs.tfplugindocs_version }}
+    steps:
+      - name: Discover Latest tfplugindocs Tag
+        id: discover
+        run: |
+          TAG="$(gh api repos/hashicorp/terraform-plugin-docs/releases/latest --jq .tag_name)"
+          {
+            echo "tfplugindocs_tag=${TAG}"
+            echo "tfplugindocs_version=${TAG#v}"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-        echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
-    - name: Create Pull Request
-      if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
-      run: |
-        gh pr create \
-          --title "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}" \
-          --body "Automated update of Go from v${{ steps.current-version.outputs.version }} to v${{ steps.latest-version.outputs.version }}." \
-          --base main \
-          --head "${{ env.BRANCH_NAME }}"
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  discover-actionlint:
+    name: Discover actionlint
+    runs-on: ubuntu-24.04
+    needs:
+      - check-open-pr
+    if: needs.check-open-pr.outputs.exists == 'false'
+    outputs:
+      actionlint_tag: ${{ steps.discover.outputs.actionlint_tag }}
+      actionlint_version: ${{ steps.discover.outputs.actionlint_version }}
+      actionlint_sha: ${{ steps.discover.outputs.actionlint_sha }}
+    steps:
+      - name: Discover Latest actionlint Tag and SHA
+        id: discover
+        run: |
+          TAG="$(gh api repos/rhysd/actionlint/releases/latest --jq .tag_name)"
+
+          SHA="$(git ls-remote https://github.com/rhysd/actionlint "refs/tags/${TAG}^{}" \
+            | awk '{print $1}')"
+          if [ -z "${SHA}" ]; then
+            SHA="$(git ls-remote https://github.com/rhysd/actionlint "refs/tags/${TAG}" \
+              | awk '{print $1}')"
+          fi
+
+          if [ -z "${SHA}" ]; then
+            echo "Failed to resolve SHA for actionlint tag ${TAG}."
+            exit 1
+          fi
+
+          {
+            echo "actionlint_tag=${TAG}"
+            echo "actionlint_version=${TAG#v}"
+            echo "actionlint_sha=${SHA}"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  discover-shellcheck:
+    name: Discover shellcheck
+    runs-on: ubuntu-24.04
+    needs:
+      - check-open-pr
+    if: needs.check-open-pr.outputs.exists == 'false'
+    outputs:
+      shellcheck_tag: ${{ steps.discover.outputs.shellcheck_tag }}
+      shellcheck_version: ${{ steps.discover.outputs.shellcheck_version }}
+    steps:
+      - name: Discover Latest shellcheck Tag
+        id: discover
+        run: |
+          TAG="$(gh api repos/koalaman/shellcheck/releases/latest --jq .tag_name)"
+          {
+            echo "shellcheck_tag=${TAG}"
+            echo "shellcheck_version=${TAG#v}"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  apply-and-validate:
+    name: Apply Updates and Validate
+    runs-on: ubuntu-24.04
+    needs:
+      - check-open-pr
+      - discover-go-version
+      - discover-python-version
+      - discover-golangci
+      - discover-tfplugindocs
+      - discover-actionlint
+      - discover-shellcheck
+    if: needs.check-open-pr.outputs.exists == 'false'
+    outputs:
+      updated: ${{ steps.apply.outputs.updated }}
+      branch_name: ${{ steps.apply.outputs.branch_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Apply Updates and Validate
+        id: apply
+        env:
+          BRANCH_NAME: ${{ needs.check-open-pr.outputs.branch_name }}
+          GO_VERSION: ${{ needs.discover-go-version.outputs.go_version }}
+          PYTHON_VERSION: ${{ needs.discover-python-version.outputs.python_version }}
+          GOLANGCI_TAG: ${{ needs.discover-golangci.outputs.golangci_tag }}
+          GOLANGCI_VERSION: ${{ needs.discover-golangci.outputs.golangci_version }}
+          TFPLUGINDOCS_VERSION: ${{ needs.discover-tfplugindocs.outputs.tfplugindocs_version }}
+          ACTIONLINT_TAG: ${{ needs.discover-actionlint.outputs.actionlint_tag }}
+          ACTIONLINT_VERSION: ${{ needs.discover-actionlint.outputs.actionlint_version }}
+          ACTIONLINT_SHA: ${{ needs.discover-actionlint.outputs.actionlint_sha }}
+          SHELLCHECK_VERSION: ${{ needs.discover-shellcheck.outputs.shellcheck_version }}
+        run: |
+          set -euo pipefail
+
+          git config --global user.name "craigsloggett"
+          git config --global user.email "684196+craigsloggett@users.noreply.github.com"
+
+          git checkout -B "${BRANCH_NAME}"
+
+          echo "branch_name=${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
+
+          sed -i "s/^go_version[[:space:]]*:= .*/go_version           := ${GO_VERSION}/" Makefile
+          sed -i "s/^golangci_version[[:space:]]*:= .*/golangci_version     := ${GOLANGCI_VERSION}/" \
+            Makefile
+          sed -i "s/^tfplugindocs_version[[:space:]]*:= .*/tfplugindocs_version := ${TFPLUGINDOCS_VERSION}/" \
+            Makefile
+          sed -i "s/^actionlint_version[[:space:]]*:= .*/actionlint_version   := ${ACTIONLINT_VERSION}/" \
+            Makefile
+          sed -i "s/^shellcheck_version[[:space:]]*:= .*/shellcheck_version   := ${SHELLCHECK_VERSION}/" \
+            Makefile
+
+          sed -i "s/^go .*/go ${GO_VERSION}/" go.mod
+          sed -i "s/^\([[:space:]]*go-version: \).*/\1${GO_VERSION}/" .github/workflows/lint.yml
+          sed -i "s/^\([[:space:]]*python-version: \).*/\1${PYTHON_VERSION}/" .github/workflows/lint.yml
+
+          ACTIONLINT_PATTERN='^\([[:space:]]*go install github.com/rhysd/actionlint/cmd/actionlint@\).*'
+          sed -i "s|${ACTIONLINT_PATTERN}|\1${ACTIONLINT_SHA} # ${ACTIONLINT_TAG}|" .github/workflows/lint.yml
+          sed -i "s/^\([[:space:]]*version: \).*/\1${GOLANGCI_TAG}/" .github/workflows/lint.yml
+
+          make clean
+          make update
+          make
+
+          if git diff --quiet; then
+            echo "No updates available."
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git add Makefile go.mod go.sum .github/workflows/lint.yml
+          git commit -m "chore(deps): update tooling and dependencies"
+          git push --force-with-lease origin "${BRANCH_NAME}"
+
+          echo "updated=true" >> "$GITHUB_OUTPUT"
+
+  create-pr:
+    name: Create Pull Request
+    runs-on: ubuntu-24.04
+    needs:
+      - apply-and-validate
+      - discover-go-version
+      - discover-python-version
+      - discover-golangci
+      - discover-tfplugindocs
+      - discover-actionlint
+      - discover-shellcheck
+    if: needs.apply-and-validate.outputs.updated == 'true'
+    steps:
+      - name: Create Pull Request
+        run: |
+          gh pr create \
+            --title "chore(deps): update tooling and dependencies" \
+            --body "$(cat <<'EOF'
+          This PR was created automatically by the scheduled \`update\` workflow.
+
+          Updated versions:
+          - Go: \`${{ needs.discover-go-version.outputs.go_version }}\`
+          - Python: \`${{ needs.discover-python-version.outputs.python_version }}\`
+          - golangci-lint: \`${{ needs.discover-golangci.outputs.golangci_tag }}\`
+          - terraform-plugin-docs: \`${{ needs.discover-tfplugindocs.outputs.tfplugindocs_tag }}\`
+          - actionlint: \`${{ needs.discover-actionlint.outputs.actionlint_tag }}\`
+          - shellcheck: \`${{ needs.discover-shellcheck.outputs.shellcheck_tag }}\`
+
+          Included actions:
+          - Updated Makefile tooling pins
+          - Updated CI pins in \`.github/workflows/lint.yml\`
+          - Ran \`make update\` to refresh Go dependencies
+          - Ran \`make\` to validate lint/test/build
+          EOF
+          )" \
+            --base main \
+            --head "${{ needs.apply-and-validate.outputs.branch_name }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}

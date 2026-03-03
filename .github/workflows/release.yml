@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-    - main
+      - main
 
 permissions:
   contents: write
@@ -15,18 +15,18 @@ jobs:
     name: Tag Release
     runs-on: ubuntu-24.04
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Release
-      uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
-      id: release
-      with:
-        semantic_version: 25.0.2
-        extra_plugins: |
-          @semantic-release/git@10.0.1
-          conventional-changelog-conventionalcommits@9.1.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Release
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
+        id: release
+        with:
+          semantic_version: 25.0.2
+          extra_plugins: |
+            @semantic-release/git@10.0.1
+            conventional-changelog-conventionalcommits@9.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
     outputs:
       new_release_published: ${{ steps.release.outputs.new_release_published }}
   goreleaser:
