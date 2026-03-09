@@ -6,7 +6,7 @@ SHELL         := env PATH=$(PATH) GOPATH=$(GOPATH) /bin/sh
 PROVIDER_NAME := terraform-provider-github
 
 # Versions
-go_version           := 1.26.0
+go_version           := 1.26.1
 golangci_version     := 2.10.1
 tfplugindocs_version := 0.24.0
 actionlint_version   := 1.7.11
