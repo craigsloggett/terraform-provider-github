@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/google/go-github/v79/github"
+	"github.com/google/go-github/v84/github"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -81,37 +81,37 @@ const (
 
 func expandRepository(model GitHubRepositoryResourceModel, mode expansionMode) *github.Repository {
 	repo := &github.Repository{
-		Name:                github.Ptr(model.Name.ValueString()),
-		Description:         github.Ptr(model.Description.ValueString()),
-		Homepage:            github.Ptr(model.Homepage.ValueString()),
-		Private:             github.Ptr(model.Private.ValueBool()),
-		HasIssues:           github.Ptr(model.HasIssues.ValueBool()),
-		HasProjects:         github.Ptr(model.HasProjects.ValueBool()),
-		HasWiki:             github.Ptr(model.HasWiki.ValueBool()),
-		HasDiscussions:      github.Ptr(model.HasDiscussions.ValueBool()),
-		AllowSquashMerge:    github.Ptr(model.AllowSquashMerge.ValueBool()),
-		AllowMergeCommit:    github.Ptr(model.AllowMergeCommit.ValueBool()),
-		AllowRebaseMerge:    github.Ptr(model.AllowRebaseMerge.ValueBool()),
-		AllowAutoMerge:      github.Ptr(model.AllowAutoMerge.ValueBool()),
-		DeleteBranchOnMerge: github.Ptr(model.DeleteBranchOnMerge.ValueBool()),
-		IsTemplate:          github.Ptr(model.IsTemplate.ValueBool()),
+		Name:                new(model.Name.ValueString()),
+		Description:         new(model.Description.ValueString()),
+		Homepage:            new(model.Homepage.ValueString()),
+		Private:             new(model.Private.ValueBool()),
+		HasIssues:           new(model.HasIssues.ValueBool()),
+		HasProjects:         new(model.HasProjects.ValueBool()),
+		HasWiki:             new(model.HasWiki.ValueBool()),
+		HasDiscussions:      new(model.HasDiscussions.ValueBool()),
+		AllowSquashMerge:    new(model.AllowSquashMerge.ValueBool()),
+		AllowMergeCommit:    new(model.AllowMergeCommit.ValueBool()),
+		AllowRebaseMerge:    new(model.AllowRebaseMerge.ValueBool()),
+		AllowAutoMerge:      new(model.AllowAutoMerge.ValueBool()),
+		DeleteBranchOnMerge: new(model.DeleteBranchOnMerge.ValueBool()),
+		IsTemplate:          new(model.IsTemplate.ValueBool()),
 	}
 
 	// Create is the only time you can successfully pass these parameters into the GitHub API.
 	if mode == expandForCreate {
-		repo.AutoInit = github.Ptr(model.AutoInit.ValueBool())
-		repo.GitignoreTemplate = github.Ptr(model.GitignoreTemplate.ValueString())
-		repo.LicenseTemplate = github.Ptr(model.LicenseTemplate.ValueString())
+		repo.AutoInit = new(model.AutoInit.ValueBool())
+		repo.GitignoreTemplate = new(model.GitignoreTemplate.ValueString())
+		repo.LicenseTemplate = new(model.LicenseTemplate.ValueString())
 	}
 
 	if model.AllowSquashMerge.ValueBool() {
-		repo.SquashMergeCommitTitle = github.Ptr(model.SquashMergeCommitTitle.ValueString())
-		repo.SquashMergeCommitMessage = github.Ptr(model.SquashMergeCommitMessage.ValueString())
+		repo.SquashMergeCommitTitle = new(model.SquashMergeCommitTitle.ValueString())
+		repo.SquashMergeCommitMessage = new(model.SquashMergeCommitMessage.ValueString())
 	}
 
 	if model.AllowMergeCommit.ValueBool() {
-		repo.MergeCommitTitle = github.Ptr(model.MergeCommitTitle.ValueString())
-		repo.MergeCommitMessage = github.Ptr(model.MergeCommitMessage.ValueString())
+		repo.MergeCommitTitle = new(model.MergeCommitTitle.ValueString())
+		repo.MergeCommitMessage = new(model.MergeCommitMessage.ValueString())
 	}
 
 	return repo
@@ -528,10 +528,10 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		}
 
 		templateReq := &github.TemplateRepoRequest{
-			Name:        github.Ptr(model.Name.ValueString()),
-			Owner:       github.Ptr(owner), // The owner (org) where the new repository will be created.
-			Description: github.Ptr(model.Description.ValueString()),
-			Private:     github.Ptr(model.Private.ValueBool()),
+			Name:        new(model.Name.ValueString()),
+			Owner:       new(owner), // The owner (org) where the new repository will be created.
+			Description: new(model.Description.ValueString()),
+			Private:     new(model.Private.ValueBool()),
 		}
 
 		_, _, err = client.Repositories.CreateFromTemplate(ctx, templateOwner, templateRepo, templateReq)

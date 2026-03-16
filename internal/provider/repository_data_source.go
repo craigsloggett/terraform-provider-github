@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/go-github/v79/github"
+	"github.com/google/go-github/v84/github"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -915,11 +915,11 @@ func (d *GitHubRepositoryDataSource) Read(ctx context.Context, req datasource.Re
 	model.Organization = &organizationModel{}
 	model.Organization.Name = types.StringValue(organization.GetLogin())
 	model.Permissions = &permissionsModel{}
-	model.Permissions.Admin = types.BoolValue(permissions["admin"])
-	model.Permissions.Pull = types.BoolValue(permissions["pull"])
-	model.Permissions.Triage = types.BoolValue(permissions["triage"])
-	model.Permissions.Push = types.BoolValue(permissions["push"])
-	model.Permissions.Maintain = types.BoolValue(permissions["maintain"])
+	model.Permissions.Admin = types.BoolValue(permissions.GetAdmin())
+	model.Permissions.Pull = types.BoolValue(permissions.GetPull())
+	model.Permissions.Triage = types.BoolValue(permissions.GetTriage())
+	model.Permissions.Push = types.BoolValue(permissions.GetPush())
+	model.Permissions.Maintain = types.BoolValue(permissions.GetMaintain())
 	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
 	model.AllowUpdateBranch = types.BoolValue(repo.GetAllowUpdateBranch())
 	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())

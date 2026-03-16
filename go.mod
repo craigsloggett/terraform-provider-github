@@ -1,9 +1,9 @@
 module github.com/craigsloggett/terraform-provider-github
 
-go 1.26.0
+go 1.26.1
 
 require (
-	github.com/google/go-github/v79 v79.0.0
+	github.com/google/go-github/v84 v84.0.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-framework-timetypes v0.5.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
