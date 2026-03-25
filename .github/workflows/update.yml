@@ -2,9 +2,13 @@ name: Update
 
 on:
   schedule:
-  # Run weekly on Mondays at 10:00 UTC
-  - cron: 0 10 * * 1
+    # Run weekly on Mondays at 10:00 UTC
+    - cron: 0 10 * * 1
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -14,69 +18,77 @@ jobs:
   go:
     name: Go
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Get Latest Go Version
-      id: latest-version
-      run: |
-        # Get the latest stable Go version from the Go API.
-        LATEST_VERSION=$(curl -s "https://go.dev/dl/?mode=json" | jq -r '.[0].version' | sed 's/go//')
-        echo "version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
-    - name: Get Current Go Version
-      id: current-version
-      run: |
-        # Get the current version from the Makefile.
-        CURRENT_VERSION=$(grep "^go_version" Makefile | tr -s ' ' | cut -d' ' -f3)
-        echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
-    - name: Compare Go Versions
-      id: compare-versions
-      run: |
-        if [ "${{ steps.latest-version.outputs.version }}" != "${{ steps.current-version.outputs.version }}" ]; then
-          echo "update=true" >> "$GITHUB_OUTPUT"
-        fi
-    - name: Check for an Existing Pull Request
-      id: check-open-pull-requests
-      if: steps.compare-versions.outputs.update == 'true'
-      run: |
-        BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
-        if gh pr list --head "$BRANCH_NAME" --state open --json number | jq -e '. | length > 0' >/dev/null; then
-          echo "exists=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "exists=false" >> "$GITHUB_OUTPUT"
-        fi
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    - name: Create Branch and Update Go Version
-      if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
-      run: |
-        git config --global user.name "craigsloggett"
-        git config --global user.email "684196+craigsloggett@users.noreply.github.com"
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-        BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
-        git checkout -b "$BRANCH_NAME"
+      - name: Get Latest Go Version
+        id: latest-version
+        run: |
+          LATEST_VERSION=$(curl -s "https://go.dev/dl/?mode=json" \
+            | jq -r '.[0].version' | sed 's/go//')
+          echo "version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
 
-        sed -i "s/^go_version.*:= .*/go_version           := ${{ steps.latest-version.outputs.version }}/" Makefile
-        sed -i "s/^go .*/go ${{ steps.latest-version.outputs.version }}/" go.mod
+      - name: Get Current Go Version
+        id: current-version
+        run: |
+          CURRENT_VERSION=$(sed -n 's/^go //p' go.mod)
+          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
 
-        git add Makefile go.mod
-        git commit -m "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}"
+      - name: Compare Go Versions
+        id: compare-versions
+        run: |
+          if [ "${{ steps.latest-version.outputs.version }}" != "${{ steps.current-version.outputs.version }}" ]; then
+            echo "update=true" >> "$GITHUB_OUTPUT"
+          fi
 
-        make clean
-        make update
-        git add go.mod go.sum
-        git commit -m "chore(deps): Update dependencies"
+      - name: Check for an Existing Pull Request
+        id: check-open-pull-requests
+        if: steps.compare-versions.outputs.update == 'true'
+        run: |
+          BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
+          if gh pr list --head "$BRANCH_NAME" --state open --json number \
+            | jq -e '. | length > 0' >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-        git push origin "$BRANCH_NAME"
+      - name: Create Branch and Update Go Version
+        if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
+        run: |
+          git config --global user.name "craigsloggett"
+          git config --global user.email "684196+craigsloggett@users.noreply.github.com"
 
-        echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
-    - name: Create Pull Request
-      if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
-      run: |
-        gh pr create \
-          --title "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}" \
-          --body "Automated update of Go from v${{ steps.current-version.outputs.version }} to v${{ steps.latest-version.outputs.version }}." \
-          --base main \
-          --head "${{ env.BRANCH_NAME }}"
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          BRANCH_NAME="update-go-${{ steps.latest-version.outputs.version }}"
+          git checkout -b "$BRANCH_NAME"
+
+          sed -i "s/^go .*/go ${{ steps.latest-version.outputs.version }}/" go.mod
+
+          git add go.mod
+          git commit -m "chore(deps): Update Go to v${{ steps.latest-version.outputs.version }}"
+
+          make update
+          git add go.mod go.sum
+          git commit -m "chore(deps): Update dependencies"
+
+          git push origin "$BRANCH_NAME"
+
+          echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
+
+      - name: Create Pull Request
+        if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
+        run: |
+          LATEST="${{ steps.latest-version.outputs.version }}"
+          CURRENT="${{ steps.current-version.outputs.version }}"
+
+          gh pr create \
+            --title "chore(deps): Update Go to v${LATEST}" \
+            --body "Update Go from v${CURRENT} to v${LATEST}." \
+            --base main \
+            --head "${{ env.BRANCH_NAME }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
