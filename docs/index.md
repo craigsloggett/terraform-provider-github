@@ -1,5 +1,4 @@
 ---
-layout: ""
 page_title: "GitHub Provider"
 description: |-
   The GitHub provider provides resources to interact with the GitHub API.
