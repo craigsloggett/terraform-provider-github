@@ -1,3 +1,4 @@
+# TODO: Extract individual tool updates into composite actions to reduce complexity.
 name: Update
 
 on:
@@ -15,32 +16,72 @@ permissions:
   pull-requests: write
 
 jobs:
-  golangci-lint:
-    name: golangci-lint
+  update:
+    strategy:
+      fail-fast: false
+      matrix:
+        tool:
+          - golangci-lint
+          - govulncheck
+          - terraform
+    name: ${{ matrix.tool }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: Setup Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
       - name: Get Latest Version
         id: latest-version
         run: |
-          VERSION=$(gh api repos/golangci/golangci-lint/releases/latest --jq '.tag_name')
+          case "${{ matrix.tool }}" in
+            golangci-lint)
+              VERSION=$(go list -m -json github.com/golangci/golangci-lint/v2@latest | jq -r '.Version')
+              ;;
+            govulncheck)
+              VERSION=$(go list -m -json golang.org/x/vuln@latest | jq -r '.Version')
+              ;;
+            terraform)
+              VERSION=$(gh api repos/hashicorp/terraform/releases/latest --jq '.tag_name' | sed 's/^v//')
+              ;;
+          esac
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get Current Version
-        id: current-version
+      - name: Get Current Versions
+        id: current-versions
         run: |
-          VERSION=$(sed -n 's/^GOLANGCI_LINT_VERSION := //p' Makefile)
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          case "${{ matrix.tool }}" in
+            golangci-lint)
+              WORKFLOW=$(sed -n 's/.*version: //p' .github/workflows/lint.yml)
+              MAKEFILE=$(sed -n 's/^GOLANGCI_LINT_VERSION := //p' Makefile)
+              ;;
+            govulncheck)
+              WORKFLOW=$(sed -n 's/.*govulncheck@//p' .github/workflows/lint.yml)
+              MAKEFILE=$(sed -n 's/^GOVULNCHECK_VERSION[[:space:]]*:= //p' Makefile)
+              ;;
+            terraform)
+              WORKFLOW=$(sed -n 's/.*terraform_version: //p' .github/workflows/lint.yml)
+              MAKEFILE="${WORKFLOW}"
+              ;;
+          esac
+          echo "workflow=${WORKFLOW}" >> "$GITHUB_OUTPUT"
+          echo "makefile=${MAKEFILE}" >> "$GITHUB_OUTPUT"
 
       - name: Compare Versions
         id: compare-versions
         run: |
-          if [ "${{ steps.latest-version.outputs.version }}" != "${{ steps.current-version.outputs.version }}" ]; then
+          LATEST="${{ steps.latest-version.outputs.version }}"
+          WORKFLOW="${{ steps.current-versions.outputs.workflow }}"
+          MAKEFILE="${{ steps.current-versions.outputs.makefile }}"
+          if [ "${LATEST}" != "${WORKFLOW}" ] || [ "${LATEST}" != "${MAKEFILE}" ]; then
             echo "update=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -48,7 +89,7 @@ jobs:
         id: check-open-pull-requests
         if: steps.compare-versions.outputs.update == 'true'
         run: |
-          BRANCH_NAME="update-golangci-lint-${{ steps.latest-version.outputs.version }}"
+          BRANCH_NAME="update-${{ matrix.tool }}-${{ steps.latest-version.outputs.version }}"
           if gh pr list --head "${BRANCH_NAME}" --state open --json number \
             | jq -e '. | length > 0' >/dev/null; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -65,14 +106,27 @@ jobs:
           git config --global user.email "684196+craigsloggett@users.noreply.github.com"
 
           LATEST="${{ steps.latest-version.outputs.version }}"
-          BRANCH_NAME="update-golangci-lint-${LATEST}"
+          BRANCH_NAME="update-${{ matrix.tool }}-${LATEST}"
           git checkout -b "${BRANCH_NAME}"
 
-          sed -i "s/^GOLANGCI_LINT_VERSION := .*/GOLANGCI_LINT_VERSION := ${LATEST}/" Makefile
-          sed -i "s/version: v.*/version: ${LATEST}/" .github/workflows/lint.yml
+          case "${{ matrix.tool }}" in
+            golangci-lint)
+              sed -i "s/^GOLANGCI_LINT_VERSION := .*/GOLANGCI_LINT_VERSION := ${LATEST}/" Makefile
+              sed -i "s/version: v.*/version: ${LATEST}/" .github/workflows/lint.yml
+              git add Makefile .github/workflows/lint.yml
+              ;;
+            govulncheck)
+              sed -i "s/^GOVULNCHECK_VERSION[[:space:]]*:= .*/GOVULNCHECK_VERSION   := ${LATEST}/" Makefile
+              sed -i "s/govulncheck@.*/govulncheck@${LATEST}/" .github/workflows/lint.yml
+              git add Makefile .github/workflows/lint.yml
+              ;;
+            terraform)
+              sed -i "s/terraform_version: .*/terraform_version: ${LATEST}/" .github/workflows/lint.yml
+              git add .github/workflows/lint.yml
+              ;;
+          esac
 
-          git add Makefile .github/workflows/lint.yml
-          git commit -m "chore(deps): Update golangci-lint to ${LATEST}"
+          git commit -m "chore(deps): Update ${{ matrix.tool }} to ${LATEST}"
 
           git push origin "${BRANCH_NAME}"
 
@@ -82,87 +136,12 @@ jobs:
         if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
         run: |
           LATEST="${{ steps.latest-version.outputs.version }}"
-          CURRENT="${{ steps.current-version.outputs.version }}"
+          WORKFLOW="${{ steps.current-versions.outputs.workflow }}"
+          MAKEFILE="${{ steps.current-versions.outputs.makefile }}"
 
           gh pr create \
-            --title "chore(deps): Update golangci-lint to ${LATEST}" \
-            --body "Update golangci-lint from ${CURRENT} to ${LATEST}." \
-            --base main \
-            --head "${{ env.BRANCH_NAME }}"
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
-  terraform:
-    name: Terraform
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Get Latest Version
-        id: latest-version
-        run: |
-          VERSION=$(gh api repos/hashicorp/terraform/releases/latest --jq '.tag_name' | sed 's/^v//')
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get Current Version
-        id: current-version
-        run: |
-          VERSION=$(sed -n 's/.*terraform_version: //p' .github/workflows/lint.yml)
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-
-      - name: Compare Versions
-        id: compare-versions
-        run: |
-          if [ "${{ steps.latest-version.outputs.version }}" != "${{ steps.current-version.outputs.version }}" ]; then
-            echo "update=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Check for an Existing Pull Request
-        id: check-open-pull-requests
-        if: steps.compare-versions.outputs.update == 'true'
-        run: |
-          BRANCH_NAME="update-terraform-${{ steps.latest-version.outputs.version }}"
-          if gh pr list --head "${BRANCH_NAME}" --state open --json number \
-            | jq -e '. | length > 0' >/dev/null; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
-      - name: Create Branch and Update Version
-        if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
-        run: |
-          git config --global user.name "craigsloggett"
-          git config --global user.email "684196+craigsloggett@users.noreply.github.com"
-
-          LATEST="${{ steps.latest-version.outputs.version }}"
-          BRANCH_NAME="update-terraform-${LATEST}"
-          git checkout -b "${BRANCH_NAME}"
-
-          sed -i "s/terraform_version: .*/terraform_version: ${LATEST}/" .github/workflows/lint.yml
-
-          git add .github/workflows/lint.yml
-          git commit -m "chore(deps): Update Terraform to v${LATEST}"
-
-          git push origin "${BRANCH_NAME}"
-
-          echo "BRANCH_NAME=${BRANCH_NAME}" >> "$GITHUB_ENV"
-
-      - name: Create Pull Request
-        if: steps.compare-versions.outputs.update == 'true' && steps.check-open-pull-requests.outputs.exists == 'false'
-        run: |
-          LATEST="${{ steps.latest-version.outputs.version }}"
-          CURRENT="${{ steps.current-version.outputs.version }}"
-
-          gh pr create \
-            --title "chore(deps): Update Terraform to v${LATEST}" \
-            --body "Update Terraform from v${CURRENT} to v${LATEST}." \
+            --title "chore(deps): Update ${{ matrix.tool }} to ${LATEST}" \
+            --body "Update ${{ matrix.tool }} to ${LATEST} (workflow: ${WORKFLOW}, Makefile: ${MAKEFILE})." \
             --base main \
             --head "${{ env.BRANCH_NAME }}"
         env:
