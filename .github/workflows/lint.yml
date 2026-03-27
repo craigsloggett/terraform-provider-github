@@ -87,22 +87,15 @@ jobs:
       - name: Run govulncheck
         run: govulncheck ./...
 
-  terraform-fmt:
+  terraform:
     name: Terraform
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
-        with:
-          terraform_version: 1.14.8
-
-      - name: Lint Terraform Files
-        run: |
-          terraform fmt -recursive -check
+      - name: Lint Terraform Configuration
+        uses: craigsloggett/lint-terraform@246459a9d12396e76cea450d1514ccc1175e7043 # v1.0.13
 
   tfplugindocs:
     name: Docs
