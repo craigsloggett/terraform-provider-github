@@ -31,6 +31,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Setup Go
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
@@ -63,7 +65,7 @@ jobs:
         run: |
           case "${{ matrix.tool }}" in
             golangci-lint)
-              WORKFLOW=$(sed -n 's/.*version: //p' .github/workflows/lint.yml)
+              WORKFLOW=$(sed -n '/^[[:space:]]*version:/s/.*version: //p' .github/workflows/lint.yml)
               MAKEFILE=$(sed -n 's/^GOLANGCI_LINT_VERSION := //p' Makefile)
               ;;
             govulncheck)
@@ -71,7 +73,7 @@ jobs:
               MAKEFILE=$(sed -n 's/^GOVULNCHECK_VERSION[[:space:]]*:= //p' Makefile)
               ;;
             tfplugindocs)
-              WORKFLOW=$(sed -n 's/.*tfplugindocs@\([^ ]*\).*/\1/p' .github/workflows/lint.yml)
+              WORKFLOW=$(sed -n 's/.*tfplugindocs@\([^ ]*\).*/\1/p' .github/workflows/lint.yml | head -1)
               MAKEFILE=$(sed -n 's/^TFPLUGINDOCS_VERSION[[:space:]]*:= //p' Makefile)
               ;;
             terraform)
@@ -119,7 +121,7 @@ jobs:
           case "${{ matrix.tool }}" in
             golangci-lint)
               sed -i "s/^GOLANGCI_LINT_VERSION := .*/GOLANGCI_LINT_VERSION := ${LATEST}/" Makefile
-              sed -i "s/version: v.*/version: ${LATEST}/" .github/workflows/lint.yml
+              sed -i "/^[[:space:]]*version:/s/version: v.*/version: ${LATEST}/" .github/workflows/lint.yml
               git add Makefile .github/workflows/lint.yml
               ;;
             govulncheck)
