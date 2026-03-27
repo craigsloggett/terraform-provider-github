@@ -140,7 +140,12 @@ jobs:
               ;;
           esac
 
-          git commit -m "chore(deps): Update ${{ matrix.tool }} to ${LATEST}"
+          case "${{ matrix.tool }}" in
+            terraform) PREFIX="ci" ;;
+            *) PREFIX="build" ;;
+          esac
+
+          git commit -m "${PREFIX}: Update ${{ matrix.tool }} to ${LATEST}"
 
           git push origin "${BRANCH_NAME}"
 
@@ -151,12 +156,18 @@ jobs:
         run: |
           LATEST="${{ steps.latest-version.outputs.version }}"
           WORKFLOW="${{ steps.current-versions.outputs.workflow }}"
-          MAKEFILE="${{ steps.current-versions.outputs.makefile }}"
 
-          gh pr create \
-            --title "chore(deps): Update ${{ matrix.tool }} to ${LATEST}" \
-            --body "Update ${{ matrix.tool }} to ${LATEST} (workflow: ${WORKFLOW}, Makefile: ${MAKEFILE})." \
+          case "${{ matrix.tool }}" in
+            terraform) PREFIX="ci" ;;
+            *) PREFIX="build" ;;
+          esac
+
+          PR_URL=$(gh pr create \
+            --title "${PREFIX}: Update ${{ matrix.tool }} to ${LATEST}" \
+            --body "Update ${{ matrix.tool }} from ${WORKFLOW} to ${LATEST}." \
             --base main \
-            --head "${{ env.BRANCH_NAME }}"
+            --head "${{ env.BRANCH_NAME }}")
+
+          echo "::notice::Created pull request: ${PR_URL}"
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
