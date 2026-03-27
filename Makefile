@@ -1,6 +1,7 @@
-PROVIDER_NAME := terraform-provider-github
-BUILD_DIR     := .local/builds
-PLATFORMS     := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
+PROVIDER_NAME         := terraform-provider-github
+BUILD_DIR             := .local/builds
+PLATFORMS             := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
+GOLANGCI_LINT_VERSION := v2.11.3
 
 .PHONY: all build clean docs format install lint test testacc update
 
@@ -16,14 +17,15 @@ build:
 			go build -o $(BUILD_DIR)/$(PROVIDER_NAME)-$${os}-$${arch} .; \
 	done
 
-install: build
-	go install .
+install:
+	go install ./...
 
 format:
 	go fmt ./...
 
 lint:
-	golangci-lint run ./...
+	yamllint .
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) run ./...
 	actionlint
 	find . -type f -name '*.sh' \
 		-not -path './.git/*' \
@@ -31,10 +33,11 @@ lint:
 	| while IFS= read -r file; do shellcheck "$${file}"; done
 	go mod tidy
 	git diff --exit-code go.mod go.sum
-	govulncheck ./...
+	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
 docs: install
-	tfplugindocs generate -rendered-provider-name "GitHub" >/dev/null
+	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate \
+		-rendered-provider-name "GitHub" >/dev/null
 
 test:
 	go test -race -count=1 ./...
@@ -47,4 +50,4 @@ update:
 	go mod tidy
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf .local/
