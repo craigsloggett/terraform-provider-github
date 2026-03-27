@@ -156,7 +156,6 @@ jobs:
         run: |
           LATEST="${{ steps.latest-version.outputs.version }}"
           WORKFLOW="${{ steps.current-versions.outputs.workflow }}"
-          MAKEFILE="${{ steps.current-versions.outputs.makefile }}"
 
           case "${{ matrix.tool }}" in
             terraform) PREFIX="ci" ;;
@@ -165,7 +164,7 @@ jobs:
 
           gh pr create \
             --title "${PREFIX}: Update ${{ matrix.tool }} to ${LATEST}" \
-            --body "Update ${{ matrix.tool }} to ${LATEST} (workflow: ${WORKFLOW}, Makefile: ${MAKEFILE})." \
+            --body "Update ${{ matrix.tool }} from ${WORKFLOW} to ${LATEST}." \
             --base main \
             --head "${{ env.BRANCH_NAME }}"
         env:
