@@ -162,10 +162,12 @@ jobs:
             *) PREFIX="build" ;;
           esac
 
-          gh pr create \
+          PR_URL=$(gh pr create \
             --title "${PREFIX}: Update ${{ matrix.tool }} to ${LATEST}" \
             --body "Update ${{ matrix.tool }} from ${WORKFLOW} to ${LATEST}." \
             --base main \
-            --head "${{ env.BRANCH_NAME }}"
+            --head "${{ env.BRANCH_NAME }}")
+
+          echo "::notice::Created pull request: ${PR_URL}"
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
