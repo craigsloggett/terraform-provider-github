@@ -23,6 +23,7 @@ jobs:
         tool:
           - golangci-lint
           - govulncheck
+          - tfplugindocs
           - terraform
     name: ${{ matrix.tool }}
     runs-on: ubuntu-24.04
@@ -46,6 +47,9 @@ jobs:
             govulncheck)
               VERSION=$(go list -m -json golang.org/x/vuln@latest | jq -r '.Version')
               ;;
+            tfplugindocs)
+              VERSION=$(go list -m -json github.com/hashicorp/terraform-plugin-docs@latest | jq -r '.Version')
+              ;;
             terraform)
               VERSION=$(gh api repos/hashicorp/terraform/releases/latest --jq '.tag_name' | sed 's/^v//')
               ;;
@@ -65,6 +69,10 @@ jobs:
             govulncheck)
               WORKFLOW=$(sed -n 's/.*govulncheck@//p' .github/workflows/lint.yml)
               MAKEFILE=$(sed -n 's/^GOVULNCHECK_VERSION[[:space:]]*:= //p' Makefile)
+              ;;
+            tfplugindocs)
+              WORKFLOW=$(sed -n 's/.*tfplugindocs@\([^ ]*\).*/\1/p' .github/workflows/lint.yml)
+              MAKEFILE=$(sed -n 's/^TFPLUGINDOCS_VERSION[[:space:]]*:= //p' Makefile)
               ;;
             terraform)
               WORKFLOW=$(sed -n 's/.*terraform_version: //p' .github/workflows/lint.yml)
@@ -117,6 +125,11 @@ jobs:
             govulncheck)
               sed -i "s/^GOVULNCHECK_VERSION[[:space:]]*:= .*/GOVULNCHECK_VERSION   := ${LATEST}/" Makefile
               sed -i "s/govulncheck@.*/govulncheck@${LATEST}/" .github/workflows/lint.yml
+              git add Makefile .github/workflows/lint.yml
+              ;;
+            tfplugindocs)
+              sed -i "s/^TFPLUGINDOCS_VERSION[[:space:]]*:= .*/TFPLUGINDOCS_VERSION  := ${LATEST}/" Makefile
+              sed -i "s/tfplugindocs@[^ ]*/tfplugindocs@${LATEST}/" .github/workflows/lint.yml
               git add Makefile .github/workflows/lint.yml
               ;;
             terraform)

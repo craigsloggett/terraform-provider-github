@@ -3,6 +3,7 @@ BUILD_DIR             := .local/builds
 PLATFORMS             := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
 GOLANGCI_LINT_VERSION := v2.11.3
 GOVULNCHECK_VERSION   := v1.1.4
+TFPLUGINDOCS_VERSION  := v0.24.0
 
 .PHONY: all build clean docs format install lint test testacc update
 
@@ -37,7 +38,7 @@ lint:
 	go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
 
 docs: install
-	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate \
+	go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$(TFPLUGINDOCS_VERSION) generate \
 		-rendered-provider-name "GitHub" >/dev/null
 
 test:
