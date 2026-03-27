@@ -140,7 +140,12 @@ jobs:
               ;;
           esac
 
-          git commit -m "chore(deps): Update ${{ matrix.tool }} to ${LATEST}"
+          case "${{ matrix.tool }}" in
+            terraform) PREFIX="ci" ;;
+            *) PREFIX="build" ;;
+          esac
+
+          git commit -m "${PREFIX}: Update ${{ matrix.tool }} to ${LATEST}"
 
           git push origin "${BRANCH_NAME}"
 
@@ -153,8 +158,13 @@ jobs:
           WORKFLOW="${{ steps.current-versions.outputs.workflow }}"
           MAKEFILE="${{ steps.current-versions.outputs.makefile }}"
 
+          case "${{ matrix.tool }}" in
+            terraform) PREFIX="ci" ;;
+            *) PREFIX="build" ;;
+          esac
+
           gh pr create \
-            --title "chore(deps): Update ${{ matrix.tool }} to ${LATEST}" \
+            --title "${PREFIX}: Update ${{ matrix.tool }} to ${LATEST}" \
             --body "Update ${{ matrix.tool }} to ${LATEST} (workflow: ${WORKFLOW}, Makefile: ${MAKEFILE})." \
             --base main \
             --head "${{ env.BRANCH_NAME }}"
