@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
@@ -560,6 +561,42 @@ func TestAccRepositoryResourceTemplateOwnerDefault(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("github_repository.test", "name", repoName+"-updated"),
 				),
+			},
+		},
+	})
+}
+
+// Omitting template_owner should not force replacement on update.
+// Requires GITHUB_OWNER=craigsloggett-lab and a token with access to that
+// organization, since the template_owner defaults to the provider owner and
+// the terraform-module-template repository lives in craigsloggett-lab.
+
+func testAccRepositoryResourceTemplateOwnerNoReplaceConfig(name, description string) string {
+	return fmt.Sprintf(`
+resource "github_repository" "test" {
+  name                = %[1]q
+  description         = %[2]q
+  template_repository = "terraform-module-template"
+}
+`, name, description)
+}
+
+func TestAccRepositoryResourceTemplateOwnerNoReplace(t *testing.T) {
+	repoName := "testing-repo-" + acctest.RandString(8)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: providerConfig + testAccRepositoryResourceTemplateOwnerNoReplaceConfig(repoName, ""),
+			},
+			{
+				Config: providerConfig + testAccRepositoryResourceTemplateOwnerNoReplaceConfig(repoName, "Updated description."),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("github_repository.test", plancheck.ResourceActionUpdate),
+					},
+				},
 			},
 		},
 	})
