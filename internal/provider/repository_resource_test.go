@@ -171,6 +171,7 @@ resource "github_repository" "test" {
   squash_merge_commit_message = "COMMIT_MESSAGES"
   merge_commit_message        = "PR_BODY"
   merge_commit_title          = "PR_TITLE"
+  topics                      = ["terraform", "testing"]
 
   template_repository = "terraform-module-template"
   template_owner      = "craigsloggett-lab"
@@ -241,6 +242,14 @@ func TestAccRepositoryResourceAllArguments(t *testing.T) {
 						"github_repository.test",
 						tfjsonpath.New("license_template"),
 						knownvalue.StringExact("mpl-2.0"),
+					),
+					statecheck.ExpectKnownValue(
+						"github_repository.test",
+						tfjsonpath.New("topics"),
+						knownvalue.ListExact([]knownvalue.Check{
+							knownvalue.StringExact("terraform"),
+							knownvalue.StringExact("testing"),
+						}),
 					),
 					statecheck.ExpectKnownValue(
 						"github_repository.test",
@@ -347,6 +356,7 @@ resource "github_repository" "test" {
   private                     = false
   squash_merge_commit_message = "COMMIT_MESSAGES"
   squash_merge_commit_title   = "COMMIT_OR_PR_TITLE"
+  topics                      = ["terraform"]
 
   template_repository = "terraform-module-template"
   template_owner      = "craigsloggett-lab"
@@ -417,6 +427,13 @@ func TestAccRepositoryResourceNoMergeCommits(t *testing.T) {
 						"github_repository.test",
 						tfjsonpath.New("license_template"),
 						knownvalue.StringExact("mpl-2.0"),
+					),
+					statecheck.ExpectKnownValue(
+						"github_repository.test",
+						tfjsonpath.New("topics"),
+						knownvalue.ListExact([]knownvalue.Check{
+							knownvalue.StringExact("terraform"),
+						}),
 					),
 					statecheck.ExpectKnownValue(
 						"github_repository.test",

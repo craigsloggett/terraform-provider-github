@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -41,6 +42,7 @@ type GitHubRepositoryResourceModel struct {
 	HasProjects              types.Bool   `tfsdk:"has_projects"`
 	HasWiki                  types.Bool   `tfsdk:"has_wiki"`
 	HasDiscussions           types.Bool   `tfsdk:"has_discussions"`
+	Topics                   types.List   `tfsdk:"topics"`
 	AutoInit                 types.Bool   `tfsdk:"auto_init"`
 	GitignoreTemplate        types.String `tfsdk:"gitignore_template"`
 	LicenseTemplate          types.String `tfsdk:"license_template"`
@@ -80,6 +82,9 @@ const (
 	expandForUpdate
 )
 
+// expandRepository converts a Terraform resource model into a GitHub API
+// repository struct. The mode parameter controls whether creation-only fields
+// (e.g., auto_init, gitignore_template) are included in the result.
 func expandRepository(model GitHubRepositoryResourceModel, mode expansionMode) *github.Repository {
 	repo := &github.Repository{
 		Name:                new(model.Name.ValueString()),
@@ -119,7 +124,10 @@ func expandRepository(model GitHubRepositoryResourceModel, mode expansionMode) *
 	return repo
 }
 
-func flattenRepository(model *GitHubRepositoryResourceModel, repo *github.Repository) {
+// flattenRepository maps all fields from a GitHub API repository response into
+// the Terraform resource model. Both arguments and computed attributes are set
+// here since they share the same API response as the source of truth.
+func flattenRepository(ctx context.Context, model *GitHubRepositoryResourceModel, repo *github.Repository) {
 	// IDs
 	model.ID = types.Int64Value(repo.GetID())
 	model.NodeID = types.StringValue(repo.GetNodeID())
@@ -132,23 +140,7 @@ func flattenRepository(model *GitHubRepositoryResourceModel, repo *github.Reposi
 	model.HasProjects = types.BoolValue(repo.GetHasProjects())
 	model.HasWiki = types.BoolValue(repo.GetHasWiki())
 	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
-	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
-	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
-	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
-	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
-	model.AllowUpdateBranch = types.BoolValue(repo.GetAllowUpdateBranch())
-	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
-	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
-	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
-	model.MergeCommitTitle = types.StringValue(repo.GetMergeCommitTitle())
-	model.MergeCommitMessage = types.StringValue(repo.GetMergeCommitMessage())
-	model.IsTemplate = types.BoolValue(repo.GetIsTemplate())
-	// Attributes
-	model.Private = types.BoolValue(repo.GetPrivate())
-	model.HasIssues = types.BoolValue(repo.GetHasIssues())
-	model.HasProjects = types.BoolValue(repo.GetHasProjects())
-	model.HasWiki = types.BoolValue(repo.GetHasWiki())
-	model.HasDiscussions = types.BoolValue(repo.GetHasDiscussions())
+	model.Topics, _ = types.ListValueFrom(ctx, types.StringType, repo.Topics)
 	model.AllowSquashMerge = types.BoolValue(repo.GetAllowSquashMerge())
 	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
 	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
@@ -235,6 +227,16 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"topics": schema.ListAttribute{
+				ElementType:         types.StringType,
+				Description:         "The list of topics associated with the repository.",
+				MarkdownDescription: "The list of topics associated with the repository.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"auto_init": schema.BoolAttribute{
@@ -500,7 +502,7 @@ func (r *GitHubRepositoryResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	flattenRepository(&model, repo)
+	flattenRepository(ctx, &model, repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -561,7 +563,23 @@ func (r *GitHubRepositoryResource) Create(ctx context.Context, req resource.Crea
 		}
 	}
 
-	flattenRepository(&model, repo)
+	// Topics require a separate API call (PUT /repos/{owner}/{repo}/topics)
+	// and are only set when explicitly specified in the configuration.
+	if !model.Topics.IsNull() && !model.Topics.IsUnknown() {
+		var topics []string
+		resp.Diagnostics.Append(model.Topics.ElementsAs(ctx, &topics, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		returnedTopics, _, err := client.Repositories.ReplaceAllTopics(ctx, owner, repo.GetName(), topics)
+		if err != nil {
+			resp.Diagnostics.AddError("Error Setting Repository Topics", err.Error())
+			return
+		}
+		repo.Topics = returnedTopics
+	}
+
+	flattenRepository(ctx, &model, repo)
 
 	if model.TemplateRepository.IsNull() {
 		// If not using a template, ensure these are null in state.
@@ -608,7 +626,23 @@ func (r *GitHubRepositoryResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	flattenRepository(&model, repo)
+	// Topics require a separate API call (PUT /repos/{owner}/{repo}/topics)
+	// and are only set when explicitly specified in the configuration.
+	if !model.Topics.IsNull() && !model.Topics.IsUnknown() {
+		var topics []string
+		resp.Diagnostics.Append(model.Topics.ElementsAs(ctx, &topics, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		returnedTopics, _, err := client.Repositories.ReplaceAllTopics(ctx, owner, repo.GetName(), topics)
+		if err != nil {
+			resp.Diagnostics.AddError("Error Setting Repository Topics", err.Error())
+			return
+		}
+		repo.Topics = returnedTopics
+	}
+
+	flattenRepository(ctx, &model, repo)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
