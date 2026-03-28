@@ -48,6 +48,7 @@ type GitHubRepositoryResourceModel struct {
 	AllowMergeCommit         types.Bool   `tfsdk:"allow_merge_commit"`
 	AllowRebaseMerge         types.Bool   `tfsdk:"allow_rebase_merge"`
 	AllowAutoMerge           types.Bool   `tfsdk:"allow_auto_merge"`
+	AllowUpdateBranch        types.Bool   `tfsdk:"allow_update_branch"`
 	DeleteBranchOnMerge      types.Bool   `tfsdk:"delete_branch_on_merge"`
 	SquashMergeCommitTitle   types.String `tfsdk:"squash_merge_commit_title"`
 	SquashMergeCommitMessage types.String `tfsdk:"squash_merge_commit_message"`
@@ -93,6 +94,7 @@ func expandRepository(model GitHubRepositoryResourceModel, mode expansionMode) *
 		AllowMergeCommit:    new(model.AllowMergeCommit.ValueBool()),
 		AllowRebaseMerge:    new(model.AllowRebaseMerge.ValueBool()),
 		AllowAutoMerge:      new(model.AllowAutoMerge.ValueBool()),
+		AllowUpdateBranch:   new(model.AllowUpdateBranch.ValueBool()),
 		DeleteBranchOnMerge: new(model.DeleteBranchOnMerge.ValueBool()),
 		IsTemplate:          new(model.IsTemplate.ValueBool()),
 	}
@@ -134,6 +136,7 @@ func flattenRepository(model *GitHubRepositoryResourceModel, repo *github.Reposi
 	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
 	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
 	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.AllowUpdateBranch = types.BoolValue(repo.GetAllowUpdateBranch())
 	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
 	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
@@ -150,6 +153,7 @@ func flattenRepository(model *GitHubRepositoryResourceModel, repo *github.Reposi
 	model.AllowMergeCommit = types.BoolValue(repo.GetAllowMergeCommit())
 	model.AllowRebaseMerge = types.BoolValue(repo.GetAllowRebaseMerge())
 	model.AllowAutoMerge = types.BoolValue(repo.GetAllowAutoMerge())
+	model.AllowUpdateBranch = types.BoolValue(repo.GetAllowUpdateBranch())
 	model.DeleteBranchOnMerge = types.BoolValue(repo.GetDeleteBranchOnMerge())
 	model.SquashMergeCommitTitle = types.StringValue(repo.GetSquashMergeCommitTitle())
 	model.SquashMergeCommitMessage = types.StringValue(repo.GetSquashMergeCommitMessage())
@@ -272,6 +276,15 @@ func (r *GitHubRepositoryResource) Schema(_ context.Context, _ resource.SchemaRe
 			"allow_auto_merge": schema.BoolAttribute{
 				Description:         "Indicates if auto-merging is allowed in the repository.",
 				MarkdownDescription: "Indicates if auto-merging is allowed in the repository.",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"allow_update_branch": schema.BoolAttribute{
+				Description:         "Indicates if updating a pull request head branch is allowed.",
+				MarkdownDescription: "Indicates if updating a pull request head branch is allowed.",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
