@@ -90,6 +90,11 @@ func TestAccRepositoryResourceDefaults(t *testing.T) {
 					),
 					statecheck.ExpectKnownValue(
 						"github_repository.test",
+						tfjsonpath.New("allow_update_branch"),
+						knownvalue.Bool(false),
+					),
+					statecheck.ExpectKnownValue(
+						"github_repository.test",
 						tfjsonpath.New("delete_branch_on_merge"),
 						knownvalue.Bool(false),
 					),
@@ -149,6 +154,7 @@ resource "github_repository" "test" {
   allow_merge_commit          = true
   allow_rebase_merge          = true
   allow_squash_merge          = true
+  allow_update_branch         = true
   auto_init                   = true
   delete_branch_on_merge      = true
   description                 = "This is a description."
@@ -258,6 +264,11 @@ func TestAccRepositoryResourceAllArguments(t *testing.T) {
 					),
 					statecheck.ExpectKnownValue(
 						"github_repository.test",
+						tfjsonpath.New("allow_update_branch"),
+						knownvalue.Bool(true),
+					),
+					statecheck.ExpectKnownValue(
+						"github_repository.test",
 						tfjsonpath.New("delete_branch_on_merge"),
 						knownvalue.Bool(true),
 					),
@@ -321,6 +332,7 @@ resource "github_repository" "test" {
   allow_merge_commit          = false
   allow_rebase_merge          = true
   allow_squash_merge          = true
+  allow_update_branch         = true
   auto_init                   = true
   delete_branch_on_merge      = true
   description                 = "This is a description."
@@ -424,6 +436,11 @@ func TestAccRepositoryResourceNoMergeCommits(t *testing.T) {
 					statecheck.ExpectKnownValue(
 						"github_repository.test",
 						tfjsonpath.New("allow_auto_merge"),
+						knownvalue.Bool(true),
+					),
+					statecheck.ExpectKnownValue(
+						"github_repository.test",
+						tfjsonpath.New("allow_update_branch"),
 						knownvalue.Bool(true),
 					),
 					statecheck.ExpectKnownValue(
