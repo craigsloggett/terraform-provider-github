@@ -28,14 +28,14 @@ jobs:
 
       - name: Bump Terraform
         id: bump-terraform
-        uses: craigsloggett/bump-terraform-cli@b3873aa605a3d8eefc37146e80f7032fe6353591
+        uses: craigsloggett/bump-terraform-cli@12b525d600626b23f66931cdd404fc7e5563a46b
         with:
           file: .github/workflows/lint.yml
           path: .jobs.terraform-fmt.steps[1].with.terraform_version
 
       - name: Create Pull Request
         if: steps.bump-terraform.outputs.changed == 'true'
-        uses: craigsloggett/create-github-pull-request@7dde7c46b39c1d820bbe496269f6ee3aea14d00a
+        uses: craigsloggett/create-github-pull-request@616da67f89440c6674e6339e3778f3aec117c58d
         with:
           title: 'chore(build): Bump Terraform to ${{ steps.bump-terraform.outputs.version }}'
           branch: bump-terraform-to-${{ steps.bump-terraform.outputs.version }}
