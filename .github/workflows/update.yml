@@ -31,7 +31,7 @@ jobs:
         uses: craigsloggett/bump-terraform-cli@v1.0.1
         with:
           file: .github/workflows/lint.yml
-          path: jobs."terraform-fmt".steps[1].with.terraform_version
+          path: .jobs.terraform-fmt.steps[1].with.terraform_version
 
       - name: Create Pull Request
         if: steps.bump-terraform-cli.outputs.changed == 'true'
