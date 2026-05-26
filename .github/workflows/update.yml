@@ -26,19 +26,19 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Bump Terraform CLI
-        id: bump-terraform-cli
+      - name: Bump Terraform
+        id: bump-terraform
         uses: craigsloggett/bump-terraform-cli@b3873aa605a3d8eefc37146e80f7032fe6353591
         with:
           file: .github/workflows/lint.yml
           path: .jobs.terraform-fmt.steps[1].with.terraform_version
 
       - name: Create Pull Request
-        if: steps.bump-terraform-cli.outputs.changed == 'true'
-        uses: craigsloggett/create-github-pull-request@v1.0.0
+        if: steps.bump-terraform.outputs.changed == 'true'
+        uses: craigsloggett/create-github-pull-request@0a3344c4d2d164784b78d1f6e9842fc24fdff36b
         with:
-          commit-message: 'chore(build): Bump Terraform CLI to ${{ steps.bump-terraform-cli.outputs.version }}'
-          pull-request-head-branch: bump-terraform-cli-${{ steps.bump-terraform-cli.outputs.version }}
+          pull-request-title: 'chore(build): Bump Terraform to ${{ steps.bump-terraform.outputs.version }}'
+          pull-request-head-branch: bump-terraform-to-${{ steps.bump-terraform.outputs.version }}
           github-token: ${{ secrets.GH_TOKEN }}
 
   update:
