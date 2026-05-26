@@ -34,7 +34,7 @@ jobs:
 
       - name: Create GitHub Pull Request
         if: steps.bump-terraform.outputs.changed == 'true'
-        uses: craigsloggett/create-github-pull-request@2a92e177215f62a0ca5a12f01631754b5d79dc96
+        uses: craigsloggett/create-github-pull-request@45d7305bba853c04925e85c8827a4a99b04d494d
         with:
           title: 'chore(build): Bump Terraform to ${{ steps.bump-terraform.outputs.version }}'
           body: |
