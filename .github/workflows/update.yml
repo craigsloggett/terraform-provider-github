@@ -28,7 +28,7 @@ jobs:
 
       - name: Bump Terraform
         id: bump-terraform
-        uses: craigsloggett/bump-terraform-cli@cbbed66ca6b2b50008c08ee99cfefde8b9fdd117
+        uses: craigsloggett/bump-terraform-cli@b79525159b282cbaf42ed4618e771266b072d4d9
         with:
           file: .github/workflows/lint.yml
           path: .jobs.terraform-fmt.steps[1].with.terraform_version
