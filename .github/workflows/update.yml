@@ -32,6 +32,16 @@ jobs:
           file: .github/workflows/lint.yml
           path: .jobs.terraform-fmt.steps[1].with.terraform_version
 
+      - name: Emit Job Summary
+        if: steps.bump-terraform.outputs.changed == 'true'
+        run: |
+          {
+            printf -- '### Updates Available\n\n'
+            printf -- '- `terraform` can be updated in `%s` to `v%s`\n\n' \
+              "${{ steps.bump-terraform.outputs.file }}" \
+              "${{ steps.bump-terraform.outputs.version }}"
+          } >>"${GITHUB_STEP_SUMMARY}"
+
       - name: Create GitHub Pull Request
         if: steps.bump-terraform.outputs.changed == 'true'
         uses: craigsloggett/create-github-pull-request@a5692a4051cd824b5367f022d35bba64e280f41b # v1.0.1
