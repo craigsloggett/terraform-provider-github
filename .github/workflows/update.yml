@@ -25,12 +25,23 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Bump Terraform
+      - name: Update Lint Workflow
         id: bump-terraform
-        uses: craigsloggett/bump-terraform-cli@949a01969e7b7b8a1c84797a5cddff7194080ce3 # v1.0.2
+        uses: craigsloggett/bump-terraform-cli@a76db06580101f05a1233963f43ba1ba4b8bf5a0 # v1.0.3
         with:
           file: .github/workflows/lint.yml
           path: .jobs.terraform-fmt.steps[1].with.terraform_version
+
+      - name: Publish Available Updates in Step Summary
+        if: steps.bump-terraform.outputs.changed == 'true'
+        run: |
+          # shellcheck disable=SC2016 # Backticks here are literal Markdown code-spans.
+          {
+            printf -- '### Updates Available\n\n'
+            printf -- '- `terraform` can be updated in `%s` to `v%s`\n\n' \
+              "${{ steps.bump-terraform.outputs.file }}" \
+              "${{ steps.bump-terraform.outputs.version }}"
+          } >>"${GITHUB_STEP_SUMMARY}"
 
       - name: Create GitHub Pull Request
         if: steps.bump-terraform.outputs.changed == 'true'
