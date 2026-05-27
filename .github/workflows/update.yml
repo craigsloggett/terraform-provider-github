@@ -163,7 +163,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-golangci-lint-workflow
-        uses: craigsloggett/bump-golangci-lint@9d15ef8c57b531b7ea118f0d940eee6c9985592f
+        uses: craigsloggett/bump-golangci-lint@05e5fcd0d8961ee8c811cd243c2698041a8ba7a6 # v1.0.0
         with:
           file: .github/workflows/lint.yml
           path: >-
@@ -173,7 +173,7 @@ jobs:
 
       - name: Update Makefile
         id: bump-golangci-lint-makefile
-        uses: craigsloggett/bump-golangci-lint@9d15ef8c57b531b7ea118f0d940eee6c9985592f
+        uses: craigsloggett/bump-golangci-lint@05e5fcd0d8961ee8c811cd243c2698041a8ba7a6 # v1.0.0
         with:
           file: Makefile
           match: ^GOLANGCI_LINT_VERSION
@@ -238,7 +238,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-tfplugindocs-workflow
-        uses: craigsloggett/bump-tfplugindocs@28832f27662928d29ac50262c8fd860ef32fcc15
+        uses: craigsloggett/bump-tfplugindocs@223d238b8869a4f07c3f6443245c8008e36bdf03 # v1.0.0
         with:
           file: .github/workflows/lint.yml
           path: >-
@@ -248,7 +248,7 @@ jobs:
 
       - name: Update Makefile
         id: bump-tfplugindocs-makefile
-        uses: craigsloggett/bump-tfplugindocs@28832f27662928d29ac50262c8fd860ef32fcc15
+        uses: craigsloggett/bump-tfplugindocs@223d238b8869a4f07c3f6443245c8008e36bdf03 # v1.0.0
         with:
           file: Makefile
           match: ^TFPLUGINDOCS_VERSION
