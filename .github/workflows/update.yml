@@ -51,7 +51,7 @@ jobs:
         id: create-github-pull-request
         uses: craigsloggett/create-github-pull-request@29f3cbd0faff8c1bc2bfebc5cf1598fb8b6f417e # v1.1.0
         with:
-          title: 'chore(build): Bump Terraform to ${{ steps.bump-terraform.outputs.version }}'
+          title: 'chore(ci): Bump Terraform to ${{ steps.bump-terraform.outputs.version }}'
           body: |
             Bump the pinned Terraform version used by the `terraform-fmt` job in `lint.yml`.
 
