@@ -27,10 +27,10 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-terraform
-        uses: craigsloggett/bump-terraform-cli@a76db06580101f05a1233963f43ba1ba4b8bf5a0 # v1.0.3
+        uses: craigsloggett/bump-terraform-cli@4c8054752d78696394f2ebdc32aa92a0ce0e95e1 # v1.0.6
         with:
           file: .github/workflows/lint.yml
-          path: >-
+          yaml_path: >-
             .jobs.terraform-fmt.steps[] |
             select(.uses | test("hashicorp/setup-terraform")) |
             .with.terraform_version
