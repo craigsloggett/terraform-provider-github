@@ -89,7 +89,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-govulncheck-lint
-        uses: craigsloggett/bump-govulncheck@28f3da6ffd84bb9715129d614f44839e6a953b11 # v0.1.0
+        uses: craigsloggett/bump-govulncheck@6334e5368540e2f6895144a75de5245034bc7353 # v0.1.1
         with:
           file: .github/workflows/lint.yml
           path: >-
@@ -99,7 +99,7 @@ jobs:
 
       - name: Update Makefile
         id: bump-govulncheck-makefile
-        uses: craigsloggett/bump-govulncheck@28f3da6ffd84bb9715129d614f44839e6a953b11 # v0.1.0
+        uses: craigsloggett/bump-govulncheck@6334e5368540e2f6895144a75de5245034bc7353 # v0.1.1
         with:
           file: Makefile
           match: ^GOVULNCHECK_VERSION
