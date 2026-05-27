@@ -118,8 +118,10 @@ jobs:
           go-version-file: go.mod
 
       - name: Validate Docs
+        env:
+          TFPLUGINDOCS_VERSION: v0.25.0
         run: |-
-          go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.25.0 validate
-          go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@v0.25.0 generate \
+          go run "github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@${TFPLUGINDOCS_VERSION}" validate
+          go run "github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@${TFPLUGINDOCS_VERSION}" generate \
             -rendered-provider-name "GitHub" >/dev/null
           git diff --exit-code docs/
