@@ -26,7 +26,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-terraform
-        uses: craigsloggett/bump-terraform-cli@4c8054752d78696394f2ebdc32aa92a0ce0e95e1 # v1.0.6
+        uses: craigsloggett/bump-terraform-cli@bc220183f08919120285fd2e49b01d5a7e7ab4ba # v1.0.7
         with:
           file: .github/workflows/lint.yml
           yaml_path: >-
@@ -88,7 +88,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-govulncheck-lint
-        uses: craigsloggett/bump-govulncheck@6334e5368540e2f6895144a75de5245034bc7353 # v0.1.1
+        uses: craigsloggett/bump-govulncheck@862f0edb4a886efb0b2174dcd139f4d9f4041355 # v0.1.2
         with:
           file: .github/workflows/lint.yml
           path: >-
@@ -98,7 +98,7 @@ jobs:
 
       - name: Update Makefile
         id: bump-govulncheck-makefile
-        uses: craigsloggett/bump-govulncheck@6334e5368540e2f6895144a75de5245034bc7353 # v0.1.1
+        uses: craigsloggett/bump-govulncheck@862f0edb4a886efb0b2174dcd139f4d9f4041355 # v0.1.2
         with:
           file: Makefile
           match: ^GOVULNCHECK_VERSION
@@ -163,7 +163,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-golangci-lint-workflow
-        uses: craigsloggett/bump-golangci-lint@05e5fcd0d8961ee8c811cd243c2698041a8ba7a6 # v1.0.0
+        uses: craigsloggett/bump-golangci-lint@d1704fbd45b3f9c610ea79ca1e4ea108280c1e26 # v1.0.1
         with:
           file: .github/workflows/lint.yml
           path: >-
@@ -173,7 +173,7 @@ jobs:
 
       - name: Update Makefile
         id: bump-golangci-lint-makefile
-        uses: craigsloggett/bump-golangci-lint@05e5fcd0d8961ee8c811cd243c2698041a8ba7a6 # v1.0.0
+        uses: craigsloggett/bump-golangci-lint@d1704fbd45b3f9c610ea79ca1e4ea108280c1e26 # v1.0.1
         with:
           file: Makefile
           match: ^GOLANGCI_LINT_VERSION
@@ -238,7 +238,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-tfplugindocs-workflow
-        uses: craigsloggett/bump-tfplugindocs@223d238b8869a4f07c3f6443245c8008e36bdf03 # v1.0.0
+        uses: craigsloggett/bump-tfplugindocs@e093029aff028f0a84c3f3adc513f5d2503f125e # v1.0.1
         with:
           file: .github/workflows/lint.yml
           path: >-
@@ -248,7 +248,7 @@ jobs:
 
       - name: Update Makefile
         id: bump-tfplugindocs-makefile
-        uses: craigsloggett/bump-tfplugindocs@223d238b8869a4f07c3f6443245c8008e36bdf03 # v1.0.0
+        uses: craigsloggett/bump-tfplugindocs@e093029aff028f0a84c3f3adc513f5d2503f125e # v1.0.1
         with:
           file: Makefile
           match: ^TFPLUGINDOCS_VERSION
