@@ -26,7 +26,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-terraform
-        uses: craigsloggett/bump-terraform-cli@bc220183f08919120285fd2e49b01d5a7e7ab4ba # v1.0.7
+        uses: craigsloggett/bump-terraform-cli@d1aa8990a17228dbc62876846b7279048c745dce # v1.0.8
         with:
           file: .github/workflows/lint.yml
           yaml_path: >-
