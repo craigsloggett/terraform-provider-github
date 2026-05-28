@@ -88,7 +88,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-govulncheck-lint
-        uses: craigsloggett/bump-govulncheck@862f0edb4a886efb0b2174dcd139f4d9f4041355 # v0.1.2
+        uses: craigsloggett/bump-govulncheck@f830ecf36a9e2ad10c46aaecdd12a33b6be0a6c7 # v0.1.3
         with:
           file: .github/workflows/lint.yml
           path: >-
@@ -98,7 +98,7 @@ jobs:
 
       - name: Update Makefile
         id: bump-govulncheck-makefile
-        uses: craigsloggett/bump-govulncheck@862f0edb4a886efb0b2174dcd139f4d9f4041355 # v0.1.2
+        uses: craigsloggett/bump-govulncheck@f830ecf36a9e2ad10c46aaecdd12a33b6be0a6c7 # v0.1.3
         with:
           file: Makefile
           match: ^GOVULNCHECK_VERSION
@@ -163,7 +163,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-golangci-lint-workflow
-        uses: craigsloggett/bump-golangci-lint@d1704fbd45b3f9c610ea79ca1e4ea108280c1e26 # v1.0.1
+        uses: craigsloggett/bump-golangci-lint@cf0c6e37d979960fefd6078c5a3412ec915c592b # v1.0.2
         with:
           file: .github/workflows/lint.yml
           path: >-
@@ -173,7 +173,7 @@ jobs:
 
       - name: Update Makefile
         id: bump-golangci-lint-makefile
-        uses: craigsloggett/bump-golangci-lint@d1704fbd45b3f9c610ea79ca1e4ea108280c1e26 # v1.0.1
+        uses: craigsloggett/bump-golangci-lint@cf0c6e37d979960fefd6078c5a3412ec915c592b # v1.0.2
         with:
           file: Makefile
           match: ^GOLANGCI_LINT_VERSION
@@ -238,7 +238,7 @@ jobs:
 
       - name: Update Lint Workflow
         id: bump-tfplugindocs-workflow
-        uses: craigsloggett/bump-tfplugindocs@e093029aff028f0a84c3f3adc513f5d2503f125e # v1.0.1
+        uses: craigsloggett/bump-tfplugindocs@e40394393df40e7629ea734f45517b71dce956d8 # v1.0.2
         with:
           file: .github/workflows/lint.yml
           path: >-
@@ -248,7 +248,7 @@ jobs:
 
       - name: Update Makefile
         id: bump-tfplugindocs-makefile
-        uses: craigsloggett/bump-tfplugindocs@e093029aff028f0a84c3f3adc513f5d2503f125e # v1.0.1
+        uses: craigsloggett/bump-tfplugindocs@e40394393df40e7629ea734f45517b71dce956d8 # v1.0.2
         with:
           file: Makefile
           match: ^TFPLUGINDOCS_VERSION
