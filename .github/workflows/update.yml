@@ -24,37 +24,48 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Update Lint Workflow
-        id: bump-terraform
-        uses: craigsloggett/bump-terraform-cli@c8c2085bece33c03fcd0cac4d4c4e1d011f56173 # v1.0.9
+      - name: Resolve Latest Version
+        id: latest
+        run: |
+          version="$(
+            curl -sf https://checkpoint-api.hashicorp.com/v1/check/terraform |
+              jq -r '.current_version // empty'
+          )"
+          [ -n "${version}" ] || { echo 'failed to resolve terraform version' >&2; exit 1; }
+          echo "version=${version}" >>"${GITHUB_OUTPUT}"
+
+      - name: Bump Lint Workflow
+        id: bump-lint
+        uses: craigsloggett/bump-version@5781f440ed80e9fb6b17bd42e7c066c0fd85c7f1 # branch implement-bump-version
         with:
           file: .github/workflows/lint.yml
-          yaml_path: >-
+          key: >-
             .jobs.terraform-fmt.steps[] |
             select(.uses | test("hashicorp/setup-terraform")) |
             .with.terraform_version
+          version: ${{ steps.latest.outputs.version }}
 
       - name: Create GitHub Pull Request
-        if: steps.bump-terraform.outputs.changed == 'true'
+        if: steps.bump-lint.outputs.changed == 'true'
         id: create-github-pull-request
         uses: craigsloggett/create-github-pull-request@29f3cbd0faff8c1bc2bfebc5cf1598fb8b6f417e # v1.1.0
         with:
-          title: 'chore(ci): Bump terraform to ${{ steps.bump-terraform.outputs.version }}'
+          title: 'chore(ci): Bump terraform to ${{ steps.latest.outputs.version }}'
           body: >-
             Bump the pinned `terraform` version in `lint.yml` to
-            `${{ steps.bump-terraform.outputs.version }}`
-          branch: update/bump-terraform-${{ steps.bump-terraform.outputs.version }}
+            `${{ steps.latest.outputs.version }}`
+          branch: update/bump-terraform-${{ steps.latest.outputs.version }}
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Publish Available Updates in Step Summary
-        if: steps.bump-terraform.outputs.changed == 'true'
+        if: steps.bump-lint.outputs.changed == 'true'
         run: |
           # shellcheck disable=SC2016 # Backticks here are literal Markdown code-spans.
           {
             printf -- '### Updates Available\n\n'
             printf -- '- `terraform` can be updated in `%s` to `v%s`\n\n' \
-              "${{ steps.bump-terraform.outputs.file }}" \
-              "${{ steps.bump-terraform.outputs.version }}"
+              '.github/workflows/lint.yml' \
+              "${{ steps.latest.outputs.version }}"
           } >>"${GITHUB_STEP_SUMMARY}"
 
       - name: Publish Pull Request Details in Step Summary
@@ -80,42 +91,53 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Update Lint Workflow
-        id: bump-govulncheck-lint
-        uses: craigsloggett/bump-govulncheck@532c553b320d87c7bf2cdf0185fe3d11480ad3c4 # v0.1.4
+      - name: Resolve Latest Version
+        id: latest
+        run: |
+          version="$(
+            curl -sf https://proxy.golang.org/golang.org/x/vuln/@latest |
+              jq -r '.Version // empty'
+          )"
+          [ -n "${version}" ] || { echo 'failed to resolve govulncheck version' >&2; exit 1; }
+          echo "version=${version}" >>"${GITHUB_OUTPUT}"
+
+      - name: Bump Lint Workflow
+        id: bump-lint
+        uses: craigsloggett/bump-version@5781f440ed80e9fb6b17bd42e7c066c0fd85c7f1 # branch implement-bump-version
         with:
           file: .github/workflows/lint.yml
-          path: >-
+          key: >-
             .jobs.govulncheck.steps[] |
-            select(.run | test("go install golang.org/x/vuln/cmd/govulncheck")) |
-            .run
+            select(.env.GOVULNCHECK_VERSION) |
+            .env.GOVULNCHECK_VERSION
+          version: ${{ steps.latest.outputs.version }}
 
-      - name: Update Makefile
-        id: bump-govulncheck-makefile
-        uses: craigsloggett/bump-govulncheck@532c553b320d87c7bf2cdf0185fe3d11480ad3c4 # v0.1.4
+      - name: Bump Makefile
+        id: bump-makefile
+        uses: craigsloggett/bump-version@5781f440ed80e9fb6b17bd42e7c066c0fd85c7f1 # branch implement-bump-version
         with:
           file: Makefile
-          match: ^GOVULNCHECK_VERSION
-          replace: GOVULNCHECK_VERSION   := {version}
+          key: GOVULNCHECK_VERSION
+          version: ${{ steps.latest.outputs.version }}
 
       - name: Create GitHub Pull Request
         if: >-
-          steps.bump-govulncheck-lint.outputs.changed == 'true' ||
-          steps.bump-govulncheck-makefile.outputs.changed == 'true'
+          steps.bump-lint.outputs.changed == 'true' ||
+          steps.bump-makefile.outputs.changed == 'true'
         id: create-github-pull-request
         uses: craigsloggett/create-github-pull-request@29f3cbd0faff8c1bc2bfebc5cf1598fb8b6f417e # v1.1.0
         with:
-          title: 'chore(build): Bump govulncheck to ${{ steps.bump-govulncheck-lint.outputs.version }}'
+          title: 'chore(build): Bump govulncheck to ${{ steps.latest.outputs.version }}'
           body: >-
             Bump the pinned `govulncheck` version in `lint.yml` and `Makefile` to
-            `${{ steps.bump-govulncheck-lint.outputs.version }}`
-          branch: update/bump-govulncheck-${{ steps.bump-govulncheck-lint.outputs.version }}
+            `${{ steps.latest.outputs.version }}`
+          branch: update/bump-govulncheck-${{ steps.latest.outputs.version }}
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Publish Available Updates in Step Summary
         if: >-
-          steps.bump-govulncheck-lint.outputs.changed == 'true' ||
-          steps.bump-govulncheck-makefile.outputs.changed == 'true'
+          steps.bump-lint.outputs.changed == 'true' ||
+          steps.bump-makefile.outputs.changed == 'true'
         run: |
           # shellcheck disable=SC2016 # Backticks here are literal Markdown code-spans.
           {
@@ -123,7 +145,7 @@ jobs:
             printf -- '- `govulncheck` can be updated in `%s` and `%s` to `%s`\n\n' \
               '.github/workflows/lint.yml' \
               'Makefile' \
-              "${{ steps.bump-govulncheck-lint.outputs.version }}"
+              "${{ steps.latest.outputs.version }}"
           } >>"${GITHUB_STEP_SUMMARY}"
 
       - name: Publish Pull Request Details in Step Summary
@@ -149,42 +171,53 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Update Lint Workflow
-        id: bump-golangci-lint-workflow
-        uses: craigsloggett/bump-golangci-lint@05e5fcd0d8961ee8c811cd243c2698041a8ba7a6 # v1.0.0
+      - name: Resolve Latest Version
+        id: latest
+        run: |
+          version="$(
+            curl -sf https://proxy.golang.org/github.com/golangci/golangci-lint/v2/@latest |
+              jq -r '.Version // empty'
+          )"
+          [ -n "${version}" ] || { echo 'failed to resolve golangci-lint version' >&2; exit 1; }
+          echo "version=${version}" >>"${GITHUB_OUTPUT}"
+
+      - name: Bump Lint Workflow
+        id: bump-lint
+        uses: craigsloggett/bump-version@5781f440ed80e9fb6b17bd42e7c066c0fd85c7f1 # branch implement-bump-version
         with:
           file: .github/workflows/lint.yml
-          path: >-
+          key: >-
             .jobs["golangci-lint"].steps[] |
             select(.uses | test("golangci/golangci-lint-action")) |
             .with.version
+          version: ${{ steps.latest.outputs.version }}
 
-      - name: Update Makefile
-        id: bump-golangci-lint-makefile
-        uses: craigsloggett/bump-golangci-lint@05e5fcd0d8961ee8c811cd243c2698041a8ba7a6 # v1.0.0
+      - name: Bump Makefile
+        id: bump-makefile
+        uses: craigsloggett/bump-version@5781f440ed80e9fb6b17bd42e7c066c0fd85c7f1 # branch implement-bump-version
         with:
           file: Makefile
-          match: ^GOLANGCI_LINT_VERSION
-          replace: GOLANGCI_LINT_VERSION := {version}
+          key: GOLANGCI_LINT_VERSION
+          version: ${{ steps.latest.outputs.version }}
 
       - name: Create GitHub Pull Request
         if: >-
-          steps.bump-golangci-lint-workflow.outputs.changed == 'true' ||
-          steps.bump-golangci-lint-makefile.outputs.changed == 'true'
+          steps.bump-lint.outputs.changed == 'true' ||
+          steps.bump-makefile.outputs.changed == 'true'
         id: create-github-pull-request
         uses: craigsloggett/create-github-pull-request@29f3cbd0faff8c1bc2bfebc5cf1598fb8b6f417e # v1.1.0
         with:
-          title: 'chore(build): Bump golangci-lint to ${{ steps.bump-golangci-lint-workflow.outputs.version }}'
+          title: 'chore(build): Bump golangci-lint to ${{ steps.latest.outputs.version }}'
           body: >-
             Bump the pinned `golangci-lint` version in `lint.yml` and `Makefile` to
-            `${{ steps.bump-golangci-lint-workflow.outputs.version }}`
-          branch: update/bump-golangci-lint-${{ steps.bump-golangci-lint-workflow.outputs.version }}
+            `${{ steps.latest.outputs.version }}`
+          branch: update/bump-golangci-lint-${{ steps.latest.outputs.version }}
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Publish Available Updates in Step Summary
         if: >-
-          steps.bump-golangci-lint-workflow.outputs.changed == 'true' ||
-          steps.bump-golangci-lint-makefile.outputs.changed == 'true'
+          steps.bump-lint.outputs.changed == 'true' ||
+          steps.bump-makefile.outputs.changed == 'true'
         run: |
           # shellcheck disable=SC2016 # Backticks here are literal Markdown code-spans.
           {
@@ -192,7 +225,7 @@ jobs:
             printf -- '- `golangci-lint` can be updated in `%s` and `%s` to `%s`\n\n' \
               '.github/workflows/lint.yml' \
               'Makefile' \
-              "${{ steps.bump-golangci-lint-workflow.outputs.version }}"
+              "${{ steps.latest.outputs.version }}"
           } >>"${GITHUB_STEP_SUMMARY}"
 
       - name: Publish Pull Request Details in Step Summary
@@ -218,42 +251,53 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Update Lint Workflow
-        id: bump-tfplugindocs-workflow
-        uses: craigsloggett/bump-tfplugindocs@223d238b8869a4f07c3f6443245c8008e36bdf03 # v1.0.0
+      - name: Resolve Latest Version
+        id: latest
+        run: |
+          version="$(
+            curl -sf https://proxy.golang.org/github.com/hashicorp/terraform-plugin-docs/@latest |
+              jq -r '.Version // empty'
+          )"
+          [ -n "${version}" ] || { echo 'failed to resolve tfplugindocs version' >&2; exit 1; }
+          echo "version=${version}" >>"${GITHUB_OUTPUT}"
+
+      - name: Bump Lint Workflow
+        id: bump-lint
+        uses: craigsloggett/bump-version@5781f440ed80e9fb6b17bd42e7c066c0fd85c7f1 # branch implement-bump-version
         with:
           file: .github/workflows/lint.yml
-          path: >-
+          key: >-
             .jobs.tfplugindocs.steps[] |
             select(.run | test("tfplugindocs")) |
             .env.TFPLUGINDOCS_VERSION
+          version: ${{ steps.latest.outputs.version }}
 
-      - name: Update Makefile
-        id: bump-tfplugindocs-makefile
-        uses: craigsloggett/bump-tfplugindocs@223d238b8869a4f07c3f6443245c8008e36bdf03 # v1.0.0
+      - name: Bump Makefile
+        id: bump-makefile
+        uses: craigsloggett/bump-version@5781f440ed80e9fb6b17bd42e7c066c0fd85c7f1 # branch implement-bump-version
         with:
           file: Makefile
-          match: ^TFPLUGINDOCS_VERSION
-          replace: TFPLUGINDOCS_VERSION  := {version}
+          key: TFPLUGINDOCS_VERSION
+          version: ${{ steps.latest.outputs.version }}
 
       - name: Create GitHub Pull Request
         if: >-
-          steps.bump-tfplugindocs-workflow.outputs.changed == 'true' ||
-          steps.bump-tfplugindocs-makefile.outputs.changed == 'true'
+          steps.bump-lint.outputs.changed == 'true' ||
+          steps.bump-makefile.outputs.changed == 'true'
         id: create-github-pull-request
         uses: craigsloggett/create-github-pull-request@29f3cbd0faff8c1bc2bfebc5cf1598fb8b6f417e # v1.1.0
         with:
-          title: 'chore(build): Bump tfplugindocs to ${{ steps.bump-tfplugindocs-workflow.outputs.version }}'
+          title: 'chore(build): Bump tfplugindocs to ${{ steps.latest.outputs.version }}'
           body: >-
             Bump the pinned `tfplugindocs` version in `lint.yml` and `Makefile` to
-            `${{ steps.bump-tfplugindocs-workflow.outputs.version }}`
-          branch: update/bump-tfplugindocs-${{ steps.bump-tfplugindocs-workflow.outputs.version }}
+            `${{ steps.latest.outputs.version }}`
+          branch: update/bump-tfplugindocs-${{ steps.latest.outputs.version }}
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Publish Available Updates in Step Summary
         if: >-
-          steps.bump-tfplugindocs-workflow.outputs.changed == 'true' ||
-          steps.bump-tfplugindocs-makefile.outputs.changed == 'true'
+          steps.bump-lint.outputs.changed == 'true' ||
+          steps.bump-makefile.outputs.changed == 'true'
         run: |
           # shellcheck disable=SC2016 # Backticks here are literal Markdown code-spans.
           {
@@ -261,7 +305,7 @@ jobs:
             printf -- '- `tfplugindocs` can be updated in `%s` and `%s` to `%s`\n\n' \
               '.github/workflows/lint.yml' \
               'Makefile' \
-              "${{ steps.bump-tfplugindocs-workflow.outputs.version }}"
+              "${{ steps.latest.outputs.version }}"
           } >>"${GITHUB_STEP_SUMMARY}"
 
       - name: Publish Pull Request Details in Step Summary
