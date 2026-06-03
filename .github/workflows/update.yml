@@ -36,7 +36,7 @@ jobs:
 
       - name: Bump Lint Workflow
         id: bump-lint
-        uses: craigsloggett/bump-version@eefbf9d700ba451e02a26f11d41388b5b8d34c82 # branch implement-bump-version
+        uses: craigsloggett/bump-version@272dd01ce252d22f124d34e745938d72bf121e58 # branch implement-bump-version
         with:
           file: .github/workflows/lint.yml
           key: >-
@@ -103,7 +103,7 @@ jobs:
 
       - name: Bump Lint Workflow
         id: bump-lint
-        uses: craigsloggett/bump-version@eefbf9d700ba451e02a26f11d41388b5b8d34c82 # branch implement-bump-version
+        uses: craigsloggett/bump-version@272dd01ce252d22f124d34e745938d72bf121e58 # branch implement-bump-version
         with:
           file: .github/workflows/lint.yml
           key: >-
@@ -114,7 +114,7 @@ jobs:
 
       - name: Bump Makefile
         id: bump-makefile
-        uses: craigsloggett/bump-version@eefbf9d700ba451e02a26f11d41388b5b8d34c82 # branch implement-bump-version
+        uses: craigsloggett/bump-version@272dd01ce252d22f124d34e745938d72bf121e58 # branch implement-bump-version
         with:
           file: Makefile
           key: GOVULNCHECK_VERSION
@@ -183,7 +183,7 @@ jobs:
 
       - name: Bump Lint Workflow
         id: bump-lint
-        uses: craigsloggett/bump-version@eefbf9d700ba451e02a26f11d41388b5b8d34c82 # branch implement-bump-version
+        uses: craigsloggett/bump-version@272dd01ce252d22f124d34e745938d72bf121e58 # branch implement-bump-version
         with:
           file: .github/workflows/lint.yml
           key: >-
@@ -194,7 +194,7 @@ jobs:
 
       - name: Bump Makefile
         id: bump-makefile
-        uses: craigsloggett/bump-version@eefbf9d700ba451e02a26f11d41388b5b8d34c82 # branch implement-bump-version
+        uses: craigsloggett/bump-version@272dd01ce252d22f124d34e745938d72bf121e58 # branch implement-bump-version
         with:
           file: Makefile
           key: GOLANGCI_LINT_VERSION
@@ -263,7 +263,7 @@ jobs:
 
       - name: Bump Lint Workflow
         id: bump-lint
-        uses: craigsloggett/bump-version@eefbf9d700ba451e02a26f11d41388b5b8d34c82 # branch implement-bump-version
+        uses: craigsloggett/bump-version@272dd01ce252d22f124d34e745938d72bf121e58 # branch implement-bump-version
         with:
           file: .github/workflows/lint.yml
           key: >-
@@ -274,7 +274,7 @@ jobs:
 
       - name: Bump Makefile
         id: bump-makefile
-        uses: craigsloggett/bump-version@eefbf9d700ba451e02a26f11d41388b5b8d34c82 # branch implement-bump-version
+        uses: craigsloggett/bump-version@272dd01ce252d22f124d34e745938d72bf121e58 # branch implement-bump-version
         with:
           file: Makefile
           key: TFPLUGINDOCS_VERSION
