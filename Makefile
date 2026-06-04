@@ -3,7 +3,7 @@ BUILD_DIR             := .local/builds
 PLATFORMS             := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
 GOLANGCI_LINT_VERSION := v2.12.2
 GOVULNCHECK_VERSION   := v1.3.0
-TFPLUGINDOCS_VERSION  := v0.20.0
+TFPLUGINDOCS_VERSION  := v0.25.0
 GO_VERSION := $(shell awk '/^go /{print $$2}' go.mod)
 
 .PHONY: all build clean docs format install lint test testacc update
