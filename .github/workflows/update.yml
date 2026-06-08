@@ -16,7 +16,6 @@ permissions:
 
 jobs:
   update:
-    name: Tooling
     # Pinned to the unreleased branch HEAD for testing; repin to a release tag once cut.
     uses: craigsloggett/github-workflows/.github/workflows/update-terraform-provider-tooling.yml@5dd56f46f21a9ac0790ad1007e856c670367b8c1
     secrets:
