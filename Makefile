@@ -1,7 +1,7 @@
 PROVIDER_NAME         := terraform-provider-github
 BUILD_DIR             := .local/builds
 PLATFORMS             := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
-GOLANGCI_LINT_VERSION := v2.0.0
+GOLANGCI_LINT_VERSION := v2.12.2
 GOVULNCHECK_VERSION   := v1.0.0
 TFPLUGINDOCS_VERSION  := v0.1.0
 GO_VERSION := $(shell awk '/^go /{print $$2}' go.mod)
