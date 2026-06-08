@@ -17,21 +17,21 @@ permissions:
 # Reusable workflows pinned to the unreleased branch HEAD for testing; repin to release tags once cut.
 jobs:
   terraform:
-    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-cli.yml@64b2700b75360fb0bdd5bbf61d1b6c5877fbf8dc
+    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-cli.yml@1503c3aed27240948998d36f9574eb180ac88d65
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   govulncheck:
-    uses: craigsloggett/github-workflows/.github/workflows/update-govulncheck.yml@64b2700b75360fb0bdd5bbf61d1b6c5877fbf8dc
+    uses: craigsloggett/github-workflows/.github/workflows/update-govulncheck.yml@1503c3aed27240948998d36f9574eb180ac88d65
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   golangci-lint:
-    uses: craigsloggett/github-workflows/.github/workflows/update-golangci-lint.yml@64b2700b75360fb0bdd5bbf61d1b6c5877fbf8dc
+    uses: craigsloggett/github-workflows/.github/workflows/update-golangci-lint.yml@1503c3aed27240948998d36f9574eb180ac88d65
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   tfplugindocs:
-    uses: craigsloggett/github-workflows/.github/workflows/update-tfplugindocs.yml@64b2700b75360fb0bdd5bbf61d1b6c5877fbf8dc
+    uses: craigsloggett/github-workflows/.github/workflows/update-tfplugindocs.yml@1503c3aed27240948998d36f9574eb180ac88d65
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
