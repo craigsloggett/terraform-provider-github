@@ -14,10 +14,24 @@ permissions:
   contents: write
   pull-requests: write
 
+# Reusable workflows pinned to the unreleased branch HEAD for testing; repin to release tags once cut.
 jobs:
-  update:
-    name: Tooling
-    # Pinned to the unreleased branch HEAD for testing; repin to a release tag once cut.
-    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-provider-tooling.yml@17cb7b0eb12898e7a1d853d50e91285eec1c2e0b
+  terraform:
+    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-cli.yml@64b2700b75360fb0bdd5bbf61d1b6c5877fbf8dc
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  govulncheck:
+    uses: craigsloggett/github-workflows/.github/workflows/update-govulncheck.yml@64b2700b75360fb0bdd5bbf61d1b6c5877fbf8dc
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  golangci-lint:
+    uses: craigsloggett/github-workflows/.github/workflows/update-golangci-lint.yml@64b2700b75360fb0bdd5bbf61d1b6c5877fbf8dc
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  tfplugindocs:
+    uses: craigsloggett/github-workflows/.github/workflows/update-tfplugindocs.yml@64b2700b75360fb0bdd5bbf61d1b6c5877fbf8dc
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
