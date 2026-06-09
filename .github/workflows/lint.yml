@@ -83,7 +83,7 @@ jobs:
 
       - name: Install govulncheck
         env:
-          GOVULNCHECK_VERSION: v1.3.0
+          GOVULNCHECK_VERSION: v1.2.0
         run: go install "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}"
 
       - name: Run govulncheck
