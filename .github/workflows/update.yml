@@ -16,6 +16,6 @@ permissions: {}
 jobs:
   bump:
     name: Bump
-    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-provider.yml@e8468b0ee9c6ee05d9c3b64f9279bba09a77cf15
+    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-provider.yml@7ba517ed7974dff928a2b37be42da227261db7b7
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
