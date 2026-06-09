@@ -15,6 +15,7 @@ permissions: {}
 # Reusable workflow pinned to the unreleased branch HEAD for testing; repin to a release tag once cut.
 jobs:
   update:
-    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-provider.yml@dc0e8ae8f85dff2de2fc5e2683324fc4063e07bc
+    name: Update
+    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-provider.yml@e8468b0ee9c6ee05d9c3b64f9279bba09a77cf15
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
