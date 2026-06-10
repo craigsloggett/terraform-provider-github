@@ -12,10 +12,9 @@ concurrency:
 
 permissions: {}
 
-# Reusable workflow pinned to the unreleased branch HEAD for testing; repin to a release tag once cut.
 jobs:
   bump:
     name: Bump
-    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-provider.yml@e8468b0ee9c6ee05d9c3b64f9279bba09a77cf15
+    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-provider.yml@172c3016c07e8e0bcc1ef3744667abc19641ad02
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
