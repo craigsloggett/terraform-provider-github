@@ -15,6 +15,7 @@ permissions: {}
 jobs:
   bump:
     name: Bump
-    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-provider.yml@172c3016c07e8e0bcc1ef3744667abc19641ad02
+    # yamllint disable-line rule:line-length
+    uses: craigsloggett/github-workflows/.github/workflows/update-terraform-provider.yml@172c3016c07e8e0bcc1ef3744667abc19641ad02 # v0.1.0
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
